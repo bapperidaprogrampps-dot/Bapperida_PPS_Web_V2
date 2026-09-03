@@ -1,0 +1,6 @@
+{
+  "name": "Bapperida Provinsi Papua Selatan",
+  "description": "Portal Resmi Badan Perencanaan Pembangunan Daerah, Riset dan Inovasi Daerah (Bapperida) Provinsi Papua Selatan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
