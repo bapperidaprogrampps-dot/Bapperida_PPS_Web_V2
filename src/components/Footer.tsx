@@ -7,16 +7,21 @@ import {
   ExternalLink, 
   Shield, 
   FileText, 
-  CheckCircle2 
+  CheckCircle2,
+  Lock,
+  UserCheck,
+  LogOut 
 } from 'lucide-react';
 import { ActivePage } from '../types';
 import { BapperidaLogo, PapuaSelatanLogo } from './Logos';
 
 interface FooterProps {
   setActivePage: (page: ActivePage) => void;
+  isAdmin?: boolean;
+  onLogout?: () => void;
 }
 
-export function Footer({ setActivePage }: FooterProps) {
+export function Footer({ setActivePage, isAdmin, onLogout }: FooterProps) {
   const handleNav = (page: ActivePage) => {
     setActivePage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -204,17 +209,53 @@ export function Footer({ setActivePage }: FooterProps) {
           </div>
         </div>
 
-        {/* Bottom copyright line */}
-        <div className="mt-12 pt-6 border-t border-slate-700/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-3">
-          <p>
+        {/* Bottom copyright line with bottom-right admin access */}
+        <div className="mt-12 pt-6 border-t border-slate-700/80 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+          <p className="text-center md:text-left">
             © 2026 Badan Perencanaan Pembangunan Daerah, Riset dan Inovasi Daerah (Bapperida) Provinsi Papua Selatan. Seluruh hak cipta dilindungi.
           </p>
-          <div className="flex items-center gap-4">
-            <button onClick={() => handleNav('profil')} className="hover:text-white transition">Visi & Misi</button>
-            <span>•</span>
-            <button onClick={() => handleNav('layanan')} className="hover:text-white transition">Maklumat Pelayanan</button>
-            <span>•</span>
-            <button onClick={() => handleNav('admin')} className="text-amber-400 hover:underline">Panel CMS Admin</button>
+          
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-4">
+            <button onClick={() => handleNav('profil')} className="hover:text-white transition cursor-pointer">Visi & Misi</button>
+            <span className="text-slate-600">•</span>
+            <button onClick={() => handleNav('layanan')} className="hover:text-white transition cursor-pointer">Maklumat Pelayanan</button>
+            <span className="text-slate-600">•</span>
+            
+            {/* Pojok Kanan Bawah: Akses Administrator */}
+            {isAdmin ? (
+              <div className="flex items-center gap-1.5 pl-1">
+                <button 
+                  onClick={() => handleNav('admin')} 
+                  id="footer-admin-btn"
+                  className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  title="Buka Panel Administrator BAPPERIDA"
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-slate-950" />
+                  <span>Panel Admin</span>
+                </button>
+                {onLogout && (
+                  <button
+                    onClick={onLogout}
+                    className="px-2.5 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-semibold transition flex items-center gap-1 cursor-pointer"
+                    id="footer-logout-btn"
+                    title="Keluar dari sesi administrator"
+                  >
+                    <LogOut className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Keluar</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <button 
+                onClick={() => handleNav('admin')} 
+                id="footer-admin-btn"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 font-medium transition flex items-center gap-1.5 cursor-pointer group"
+                title="Masuk ke Panel Administrator"
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-300 transition-colors" />
+                <span>Login Admin</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

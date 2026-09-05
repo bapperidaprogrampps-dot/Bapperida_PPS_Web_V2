@@ -58,7 +58,7 @@ export function GlobalSearchModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 w-full max-w-2xl overflow-hidden">
         {/* Search Bar Input */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-200 bg-slate-50">
           <Search className="w-5 h-5 text-slate-400 shrink-0" />

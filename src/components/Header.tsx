@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, 
   Menu, 
   X, 
-  Clock, 
-  Mail, 
-  MapPin, 
-  ShieldCheck, 
-  FileText, 
-  ExternalLink,
-  ChevronRight,
-  UserCheck,
-  Bell
+  ChevronRight
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ActivePage } from '../types';
 import { GovernmentBrandHeader } from './Logos';
 
@@ -21,161 +14,291 @@ interface HeaderProps {
   setActivePage: (page: ActivePage) => void;
   onOpenSearch: () => void;
   isAdmin: boolean;
+  onLogout?: () => void;
 }
 
-export function Header({ activePage, setActivePage, onOpenSearch, isAdmin }: HeaderProps) {
+export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [witTime, setWitTime] = useState('');
+  const [activeDropdown, setActiveDropdown] = useState<'informasi' | 'layanan' | null>(null);
+  const [mobileExpandedSection, setMobileExpandedSection] = useState<'informasi' | 'layanan' | null>(null);
 
-  // Live WIT Time
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Close dropdown on outside click
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      // WIT is UTC+9
-      const options: Intl.DateTimeFormatOptions = {
-        timeZone: 'Asia/Jayapura',
-        weekday: 'long',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      };
-      try {
-        setWitTime(new Intl.DateTimeFormat('id-ID', options).format(now) + ' WIT');
-      } catch {
-        setWitTime(now.toLocaleTimeString('id-ID') + ' WIT');
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null);
       }
     };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
-  const navItems: { id: ActivePage; label: string }[] = [
-    { id: 'beranda', label: 'Beranda' },
-    { id: 'profil', label: 'Profil' },
-    { id: 'dokumen', label: 'Dokumen Perencanaan' },
-    { id: 'berita', label: 'Berita' },
-    { id: 'layanan', label: 'Layanan PPID' },
-    { id: 'pengaduan', label: 'Pengaduan' },
-    { id: 'agenda', label: 'Agenda' },
-    { id: 'data-statistik', label: 'Data & Statistik' },
-    { id: 'galeri', label: 'Galeri' },
-    { id: 'kontak', label: 'Kontak' },
-  ];
+  const handleMouseEnter = (menu: 'informasi' | 'layanan') => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setActiveDropdown(menu);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 180);
+  };
 
   const handleNavClick = (page: ActivePage) => {
     setActivePage(page);
+    setActiveDropdown(null);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const isInformasiActive = activePage === 'agenda' || activePage === 'data-statistik';
+  const isLayananActive = activePage === 'layanan' || activePage === 'pengaduan' || activePage === 'kontak';
+
   return (
-    <header className="sticky top-0 z-50 shadow-md bg-white border-b border-slate-200">
-      {/* Top Notification Bar */}
-      <div className="bg-[#0b283d] text-slate-200 text-xs py-1.5 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-          {/* Left: Location & Time */}
-          <div className="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <MapPin className="w-3.5 h-3.5 text-amber-400" />
-              <span>Salor, Merauke - Papua Selatan</span>
-            </div>
-            <div className="hidden md:flex items-center gap-1.5 text-amber-300 font-medium">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{witTime || 'Waktu Indonesia Timur'}</span>
-            </div>
-            <div className="hidden lg:flex items-center gap-1.5 text-slate-300">
-              <Mail className="w-3.5 h-3.5 text-amber-400" />
-              <span>bapperidaprogram.pps@gmail.com</span>
-            </div>
-          </div>
-
-          {/* Right: Quick actions */}
-          <div className="flex items-center gap-3 text-xs">
-            <button
-              onClick={() => handleNavClick('pengaduan')}
-              className="flex items-center gap-1 text-slate-300 hover:text-amber-300 transition"
-              id="top-quick-track-btn"
-            >
-              <Bell className="w-3.5 h-3.5 text-amber-400" />
-              <span>Lacak Tiket</span>
-            </button>
-            <span className="text-slate-600">|</span>
-            <button
-              onClick={() => handleNavClick('dokumen')}
-              className="flex items-center gap-1 text-slate-300 hover:text-amber-300 transition"
-              id="top-quick-rpjpd-btn"
-            >
-              <FileText className="w-3.5 h-3.5 text-amber-400" />
-              <span>RPJPD 2025–2045</span>
-            </button>
-            <span className="text-slate-600">|</span>
-            <button
-              onClick={() => handleNavClick('admin')}
-              className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded transition font-medium ${
-                isAdmin 
-                  ? 'bg-amber-500 text-slate-950 font-bold' 
-                  : 'bg-white/10 hover:bg-white/20 text-white'
-              }`}
-              id="top-admin-portal-btn"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>{isAdmin ? 'Panel Admin (Aktif)' : 'Login Admin'}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Branding & Navigation Container */}
+    <header className="sticky top-0 z-50 bg-white shadow-none border-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between py-3">
-          {/* Logo & Agency identity */}
+        {/* Single Slim Navigation Row */}
+        <div className="flex items-center justify-between h-16" ref={dropdownRef}>
+          {/* Sisi Kiri: Identitas Logo yang besarnya serasi dengan tinggi teks */}
           <GovernmentBrandHeader 
             variant="light" 
+            simple={true}
+            logoClassName="h-7 sm:h-8 w-auto"
             onClick={() => handleNavClick('beranda')} 
           />
 
-          {/* Desktop Right Tools */}
-          <div className="hidden lg:flex items-center gap-3">
+          {/* Sisi Kanan: Opsi Menu Rata Kanan di Samping Logo Pencarian */}
+          {/* Urutan: Beranda > Profil > Informasi Publik > Berita > Galeri > Dokumen perencanaan > Layanan */}
+          <nav className="hidden lg:flex items-center gap-1.5 xl:gap-2.5 ml-auto">
+            {/* 1. Beranda */}
+            <button
+              onClick={() => handleNavClick('beranda')}
+              className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
+                activePage === 'beranda'
+                  ? 'text-[#0f3d5c] font-bold'
+                  : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
+              }`}
+              id="nav-item-beranda"
+            >
+              Beranda
+            </button>
+
+            {/* 2. Profil */}
+            <button
+              onClick={() => handleNavClick('profil')}
+              className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
+                activePage === 'profil'
+                  ? 'text-[#0f3d5c] font-bold'
+                  : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
+              }`}
+              id="nav-item-profil"
+            >
+              Profil
+            </button>
+
+            {/* 3. Informasi Publik (Dropdown: Agenda & Data & Statistik) */}
+            <div 
+              className="relative"
+              onMouseEnter={() => handleMouseEnter('informasi')}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button
+                onClick={() => setActiveDropdown(prev => prev === 'informasi' ? null : 'informasi')}
+                className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
+                  isInformasiActive
+                    ? 'text-[#0f3d5c] font-bold'
+                    : activeDropdown === 'informasi'
+                    ? 'text-[#0f3d5c] font-semibold'
+                    : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
+                }`}
+                id="nav-dropdown-informasi"
+                aria-expanded={activeDropdown === 'informasi'}
+              >
+                Informasi Publik
+              </button>
+
+              <AnimatePresence>
+                {activeDropdown === 'informasi' && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute top-full right-0 mt-1.5 w-44 bg-white rounded-xl border border-slate-200 py-1.5 z-50 overflow-hidden before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-['']"
+                    onMouseEnter={() => handleMouseEnter('informasi')}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <button
+                      onClick={() => handleNavClick('agenda')}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                        activePage === 'agenda'
+                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
+                      }`}
+                      id="dropdown-item-agenda"
+                    >
+                      Agenda
+                    </button>
+
+                    <button
+                      onClick={() => handleNavClick('data-statistik')}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                        activePage === 'data-statistik'
+                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
+                      }`}
+                      id="dropdown-item-data-statistik"
+                    >
+                      Data & Statistik
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* 4. Berita */}
+            <button
+              onClick={() => handleNavClick('berita')}
+              className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
+                activePage === 'berita'
+                  ? 'text-[#0f3d5c] font-bold'
+                  : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
+              }`}
+              id="nav-item-berita"
+            >
+              Berita
+            </button>
+
+            {/* 5. Galeri */}
+            <button
+              onClick={() => handleNavClick('galeri')}
+              className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
+                activePage === 'galeri'
+                  ? 'text-[#0f3d5c] font-bold'
+                  : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
+              }`}
+              id="nav-item-galeri"
+            >
+              Galeri
+            </button>
+
+            {/* 6. Dokumen Perencanaan */}
+            <button
+              onClick={() => handleNavClick('dokumen')}
+              className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
+                activePage === 'dokumen'
+                  ? 'text-[#0f3d5c] font-bold'
+                  : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
+              }`}
+              id="nav-item-dokumen"
+            >
+              Dokumen Perencanaan
+            </button>
+
+            {/* 7. Layanan (Dropdown: Layanan PPID, Pengaduan, Kontak) */}
+            <div 
+              className="relative"
+              onMouseEnter={() => handleMouseEnter('layanan')}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button
+                onClick={() => setActiveDropdown(prev => prev === 'layanan' ? null : 'layanan')}
+                className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
+                  isLayananActive
+                    ? 'text-[#0f3d5c] font-bold'
+                    : activeDropdown === 'layanan'
+                    ? 'text-[#0f3d5c] font-semibold'
+                    : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
+                }`}
+                id="nav-dropdown-layanan"
+                aria-expanded={activeDropdown === 'layanan'}
+              >
+                Layanan
+              </button>
+
+              <AnimatePresence>
+                {activeDropdown === 'layanan' && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute top-full right-0 mt-1.5 w-44 bg-white rounded-xl border border-slate-200 py-1.5 z-50 overflow-hidden before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-['']"
+                    onMouseEnter={() => handleMouseEnter('layanan')}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <button
+                      onClick={() => handleNavClick('layanan')}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                        activePage === 'layanan'
+                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
+                      }`}
+                      id="dropdown-item-ppid"
+                    >
+                      Layanan PPID
+                    </button>
+
+                    <button
+                      onClick={() => handleNavClick('pengaduan')}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                        activePage === 'pengaduan'
+                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
+                      }`}
+                      id="dropdown-item-pengaduan"
+                    >
+                      Pengaduan
+                    </button>
+
+                    <button
+                      onClick={() => handleNavClick('kontak')}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                        activePage === 'kontak'
+                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
+                      }`}
+                      id="dropdown-item-kontak"
+                    >
+                      Kontak
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Tombol Kaca Pembesar Sederhana */}
             <button
               onClick={onOpenSearch}
-              className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition"
+              className="p-2 text-slate-600 hover:text-[#0f3d5c] transition-colors cursor-pointer bg-transparent border-none ml-1"
               title="Pencarian Cepat"
+              aria-label="Pencarian Cepat"
               id="nav-search-button"
             >
-              <Search className="w-4 h-4 text-[#0f3d5c]" />
-              <span className="hidden xl:inline">Cari Berkas & Berita...</span>
-              <kbd className="hidden xl:inline-block px-1.5 py-0.5 text-[10px] bg-white border border-slate-300 rounded text-slate-500 font-mono">
-                ⌘K
-              </kbd>
+              <Search className="w-4.5 h-4.5" />
             </button>
+          </nav>
 
-            <button
-              onClick={() => handleNavClick('pengaduan')}
-              className="px-3.5 py-2 text-xs font-semibold text-white bg-[#0f3d5c] hover:bg-[#154e74] rounded-lg shadow-sm transition flex items-center gap-1.5"
-              id="nav-cta-pengaduan-btn"
-            >
-              <ShieldCheck className="w-4 h-4 text-amber-300" />
-              <span>Layanan Pengaduan</span>
-            </button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="flex items-center gap-2 lg:hidden">
+          {/* Tombol Mobile: Logo Kaca Pembesar & Menu Hamburger */}
+          <div className="flex items-center gap-1 lg:hidden">
             <button
               onClick={onOpenSearch}
-              className="p-2 text-slate-700 hover:bg-slate-100 rounded-lg"
-              aria-label="Cari"
+              className="p-2 text-slate-700 hover:text-[#0f3d5c] transition-colors cursor-pointer bg-transparent border-none"
+              aria-label="Pencarian Cepat"
             >
               <Search className="w-5 h-5" />
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-700 hover:bg-slate-100 rounded-lg"
+              className="p-2 text-slate-700 hover:text-[#0f3d5c] transition-colors cursor-pointer bg-transparent border-none"
               aria-label="Buka Menu Navigasi"
               id="mobile-menu-toggle-btn"
             >
@@ -183,61 +306,162 @@ export function Header({ activePage, setActivePage, onOpenSearch, isAdmin }: Hea
             </button>
           </div>
         </div>
-
-        {/* Desktop Navigation Links Strip */}
-        <nav className="hidden lg:flex items-center gap-1 border-t border-slate-100 py-1 overflow-x-auto">
-          {navItems.map((item) => {
-            const isActive = activePage === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className={`px-3 py-2 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
-                  isActive
-                    ? 'bg-[#0f3d5c] text-white font-semibold shadow-xs'
-                    : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-100'
-                }`}
-                id={`nav-item-${item.id}`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu dengan Urutan yang Sama */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-slate-200 px-4 py-4 max-h-[80vh] overflow-y-auto shadow-xl">
+        <div className="lg:hidden bg-white border-t border-slate-200 px-4 py-4 max-h-[80vh] overflow-y-auto">
           <div className="flex flex-col space-y-1">
-            {navItems.map((item) => {
-              const isActive = activePage === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavClick(item.id)}
-                  className={`flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-left transition ${
-                    isActive
-                      ? 'bg-[#0f3d5c] text-white font-semibold'
-                      : 'text-slate-800 hover:bg-slate-100'
-                  }`}
-                  id={`mobile-nav-${item.id}`}
-                >
-                  <span>{item.label}</span>
-                  <ChevronRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                </button>
-              );
-            })}
+            {/* 1. Beranda */}
+            <button
+              onClick={() => handleNavClick('beranda')}
+              className={`flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-left transition ${
+                activePage === 'beranda'
+                  ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                  : 'text-slate-800 hover:bg-slate-50'
+              }`}
+              id="mobile-nav-beranda"
+            >
+              <span>Beranda</span>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
 
-            <div className="pt-3 mt-3 border-t border-slate-200 flex flex-col gap-2">
+            {/* 2. Profil */}
+            <button
+              onClick={() => handleNavClick('profil')}
+              className={`flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-left transition ${
+                activePage === 'profil'
+                  ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                  : 'text-slate-800 hover:bg-slate-50'
+              }`}
+              id="mobile-nav-profil"
+            >
+              <span>Profil</span>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+
+            {/* 3. Informasi Publik Accordion */}
+            <div className="border border-slate-100 rounded-lg overflow-hidden my-0.5">
               <button
-                onClick={() => handleNavClick('admin')}
-                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 text-xs font-semibold bg-slate-900 text-white rounded-lg shadow-xs"
-                id="mobile-nav-admin"
+                onClick={() => setMobileExpandedSection(prev => prev === 'informasi' ? null : 'informasi')}
+                className={`flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-left transition ${
+                  isInformasiActive
+                    ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                    : 'text-slate-800 hover:bg-slate-50'
+                }`}
               >
-                <UserCheck className="w-4 h-4 text-amber-400" />
-                <span>{isAdmin ? 'Masuk Dashboard Admin' : 'Login Staf Admin'}</span>
+                <span>Informasi Publik</span>
+                <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${
+                  mobileExpandedSection === 'informasi' ? 'rotate-90 text-[#0f3d5c]' : 'text-slate-400'
+                }`} />
               </button>
+              {mobileExpandedSection === 'informasi' && (
+                <div className="bg-slate-50 px-3 py-1 space-y-1 border-t border-slate-100">
+                  <button
+                    onClick={() => handleNavClick('agenda')}
+                    className={`w-full px-3 py-2 text-sm rounded-md text-left transition ${
+                      activePage === 'agenda' ? 'text-[#0f3d5c] font-bold bg-white' : 'text-slate-700 hover:bg-white'
+                    }`}
+                  >
+                    Agenda
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('data-statistik')}
+                    className={`w-full px-3 py-2 text-sm rounded-md text-left transition ${
+                      activePage === 'data-statistik' ? 'text-[#0f3d5c] font-bold bg-white' : 'text-slate-700 hover:bg-white'
+                    }`}
+                  >
+                    Data & Statistik
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 4. Berita */}
+            <button
+              onClick={() => handleNavClick('berita')}
+              className={`flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-left transition ${
+                activePage === 'berita'
+                  ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                  : 'text-slate-800 hover:bg-slate-50'
+              }`}
+              id="mobile-nav-berita"
+            >
+              <span>Berita</span>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+
+            {/* 5. Galeri */}
+            <button
+              onClick={() => handleNavClick('galeri')}
+              className={`flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-left transition ${
+                activePage === 'galeri'
+                  ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                  : 'text-slate-800 hover:bg-slate-50'
+              }`}
+              id="mobile-nav-galeri"
+            >
+              <span>Galeri</span>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+
+            {/* 6. Dokumen Perencanaan */}
+            <button
+              onClick={() => handleNavClick('dokumen')}
+              className={`flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-left transition ${
+                activePage === 'dokumen'
+                  ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                  : 'text-slate-800 hover:bg-slate-50'
+              }`}
+              id="mobile-nav-dokumen"
+            >
+              <span>Dokumen Perencanaan</span>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+
+            {/* 7. Layanan Accordion */}
+            <div className="border border-slate-100 rounded-lg overflow-hidden my-0.5">
+              <button
+                onClick={() => setMobileExpandedSection(prev => prev === 'layanan' ? null : 'layanan')}
+                className={`flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-left transition ${
+                  isLayananActive
+                    ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                    : 'text-slate-800 hover:bg-slate-50'
+                }`}
+              >
+                <span>Layanan</span>
+                <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${
+                  mobileExpandedSection === 'layanan' ? 'rotate-90 text-[#0f3d5c]' : 'text-slate-400'
+                }`} />
+              </button>
+              {mobileExpandedSection === 'layanan' && (
+                <div className="bg-slate-50 px-3 py-1 space-y-1 border-t border-slate-100">
+                  <button
+                    onClick={() => handleNavClick('layanan')}
+                    className={`w-full px-3 py-2 text-sm rounded-md text-left transition ${
+                      activePage === 'layanan' ? 'text-[#0f3d5c] font-bold bg-white' : 'text-slate-700 hover:bg-white'
+                    }`}
+                  >
+                    Layanan PPID
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('pengaduan')}
+                    className={`w-full px-3 py-2 text-sm rounded-md text-left transition ${
+                      activePage === 'pengaduan' ? 'text-[#0f3d5c] font-bold bg-white' : 'text-slate-700 hover:bg-white'
+                    }`}
+                  >
+                    Pengaduan
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('kontak')}
+                    className={`w-full px-3 py-2 text-sm rounded-md text-left transition ${
+                      activePage === 'kontak' ? 'text-[#0f3d5c] font-bold bg-white' : 'text-slate-700 hover:bg-white'
+                    }`}
+                  >
+                    Kontak
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

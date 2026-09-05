@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Complaint, ComplaintStatus } from '../types';
 import { StorageService } from '../services/storage';
+import { ScrollReveal } from '../components/ScrollAnimations';
 
 interface ComplaintsViewProps {
   complaints: Complaint[];
@@ -112,49 +113,52 @@ export function ComplaintsView({ complaints, onComplaintCreated }: ComplaintsVie
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       {/* Header Banner */}
-      <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl shadow-md">
-        <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-widest mb-1">
-          <ShieldCheck className="w-4 h-4" />
-          <span>Kanal Aspirasi & Pengaduan Masyarakat</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Layanan Pengaduan & Aspirasi Bapperida
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-3xl leading-relaxed">
-          Salurkan pengaduan, masukan perencanaan infrastruktur, serta aspirasi pembangunan wilayah Anim Ha secara langsung dan terpantau dengan nomor tiket transparan.
-        </p>
+      <ScrollReveal variant="fade-up" duration={0.6}>
+        <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl">
+          <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-widest mb-1">
+            <ShieldCheck className="w-4 h-4" />
+            <span>Kanal Aspirasi & Pengaduan Masyarakat</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Layanan Pengaduan & Aspirasi Bapperida
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-3xl leading-relaxed">
+            Salurkan pengaduan, masukan perencanaan infrastruktur, serta aspirasi pembangunan wilayah Anim Ha secara langsung dan terpantau dengan nomor tiket transparan.
+          </p>
 
-        {/* Tab switchers */}
-        <div className="flex items-center gap-2 mt-6">
-          <button
-            onClick={() => setActiveTab('buat')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-              activeTab === 'buat'
-                ? 'bg-amber-400 text-slate-950 shadow-xs'
-                : 'bg-white/10 hover:bg-white/20 text-white'
-            }`}
-          >
-            Sampaikan Pengaduan Baru
-          </button>
-          <button
-            onClick={() => setActiveTab('lacak')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-              activeTab === 'lacak'
-                ? 'bg-amber-400 text-slate-950 shadow-xs'
-                : 'bg-white/10 hover:bg-white/20 text-white'
-            }`}
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span>Lacak Status Tiket Pengaduan</span>
-          </button>
+          {/* Tab switchers */}
+          <div className="flex items-center gap-2 mt-6">
+            <button
+              onClick={() => setActiveTab('buat')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeTab === 'buat'
+                  ? 'bg-amber-400 text-slate-950'
+                  : 'bg-white/10 hover:bg-white/20 text-white'
+              }`}
+            >
+              Sampaikan Pengaduan Baru
+            </button>
+            <button
+              onClick={() => setActiveTab('lacak')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'lacak'
+                  ? 'bg-amber-400 text-slate-950'
+                  : 'bg-white/10 hover:bg-white/20 text-white'
+              }`}
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Lacak Status Tiket Pengaduan</span>
+            </button>
+          </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* Mode 1: Buat Pengaduan */}
       {activeTab === 'buat' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <ScrollReveal variant="fade-up" duration={0.65}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Form */}
-          <div className="lg:col-span-8 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+          <div className="lg:col-span-8 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6">
             {createdTicket && (
               <div className="p-5 bg-emerald-50 border-2 border-emerald-400 rounded-xl text-emerald-950 space-y-3">
                 <div className="flex items-center justify-between">
@@ -328,7 +332,7 @@ export function ComplaintsView({ complaints, onComplaintCreated }: ComplaintsVie
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-lg text-xs font-bold text-white bg-[#0f3d5c] hover:bg-[#154e74] shadow-xs transition flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-lg text-xs font-bold text-white bg-[#0f3d5c] hover:bg-[#154e74] transition flex items-center gap-2 cursor-pointer"
                   id="submit-complaint-btn"
                 >
                   <Send className="w-4 h-4" />
@@ -374,13 +378,15 @@ export function ComplaintsView({ complaints, onComplaintCreated }: ComplaintsVie
             </div>
           </div>
         </div>
+      </ScrollReveal>
       )}
 
       {/* Mode 2: Lacak Status Tiket */}
       {activeTab === 'lacak' && (
-        <div className="space-y-6">
-          {/* Tracking Search Card */}
-          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs max-w-3xl mx-auto space-y-4">
+        <ScrollReveal variant="fade-up" duration={0.65}>
+          <div className="space-y-6">
+            {/* Tracking Search Card */}
+            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 max-w-3xl mx-auto space-y-4">
             <div className="text-center space-y-1">
               <h3 className="text-lg font-bold text-slate-900">
                 Lacak Progres Tiket Pengaduan
@@ -433,7 +439,7 @@ export function ComplaintsView({ complaints, onComplaintCreated }: ComplaintsVie
 
           {/* Search Result Output */}
           {searchedComplaint === 'not_found' && (
-            <div className="bg-white p-8 rounded-2xl border border-red-200 shadow-xs max-w-3xl mx-auto text-center space-y-2 text-red-900">
+            <div className="bg-white p-8 rounded-2xl border border-red-200 max-w-3xl mx-auto text-center space-y-2 text-red-900">
               <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
               <h4 className="font-bold text-sm">Nomor Tiket Tidak Ditemukan</h4>
               <p className="text-xs text-slate-600">
@@ -443,7 +449,7 @@ export function ComplaintsView({ complaints, onComplaintCreated }: ComplaintsVie
           )}
 
           {typeof searchedComplaint === 'object' && searchedComplaint && (
-            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs max-w-3xl mx-auto space-y-6 animate-in fade-in">
+            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 max-w-3xl mx-auto space-y-6 animate-in fade-in">
               {/* Header result */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
@@ -548,6 +554,7 @@ export function ComplaintsView({ complaints, onComplaintCreated }: ComplaintsVie
             </div>
           )}
         </div>
+      </ScrollReveal>
       )}
     </div>
   );

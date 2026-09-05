@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -6,14 +6,21 @@ import {
   Compass, 
   Building2, 
   Award, 
-  Percent,
-  Layers,
-  ArrowUpRight
+  Percent, 
+  Layers, 
+  ArrowUpRight 
 } from 'lucide-react';
-import { regionalIndicatorStats, regenciesData } from '../data/mockData';
+import { regenciesData } from '../data/mockData';
+import { StorageService } from '../services/storage';
+import { IndicatorStat } from '../types';
 
 export function StatisticsView() {
   const [selectedMetric, setSelectedMetric] = useState<'ipm' | 'growth' | 'poverty' | 'unemployment'>('ipm');
+  const [indicatorStats, setIndicatorStats] = useState<IndicatorStat[]>([]);
+
+  useEffect(() => {
+    setIndicatorStats(StorageService.getIndicatorStats());
+  }, []);
 
   const metricConfigs = {
     ipm: {
@@ -21,28 +28,28 @@ export function StatisticsView() {
       desc: 'Mencerminkan capaian standar hidup layak, derajat kesehatan (usia harapan hidup), dan pendidikan.',
       unit: 'Poin',
       color: '#0f3d5c',
-      data: regionalIndicatorStats.map(s => ({ year: s.year, val: s.ipm }))
+      data: indicatorStats.map(s => ({ year: s.year, val: s.ipm }))
     },
     growth: {
       label: 'Laju Pertumbuhan Ekonomi',
       desc: 'Pertumbuhan Produk Domestik Regional Bruto (PDRB) atas dasar harga konstan per tahun.',
       unit: '%',
       color: '#10B981',
-      data: regionalIndicatorStats.map(s => ({ year: s.year, val: s.growthRate }))
+      data: indicatorStats.map(s => ({ year: s.year, val: s.growthRate }))
     },
     poverty: {
       label: 'Tingkat Kemiskinan',
       desc: 'Persentase penduduk dengan pengeluaran per kapita per bulan di bawah Garis Kemiskinan.',
       unit: '%',
       color: '#EF4444',
-      data: regionalIndicatorStats.map(s => ({ year: s.year, val: s.povertyRate }))
+      data: indicatorStats.map(s => ({ year: s.year, val: s.povertyRate }))
     },
     unemployment: {
       label: 'Tingkat Pengangguran Terbuka (TPT)',
       desc: 'Persentase jumlah penganggur terhadap jumlah total angkatan kerja di Papua Selatan.',
       unit: '%',
       color: '#8B5CF6',
-      data: regionalIndicatorStats.map(s => ({ year: s.year, val: s.unemploymentRate }))
+      data: indicatorStats.map(s => ({ year: s.year, val: s.unemploymentRate }))
     }
   };
 
@@ -53,7 +60,7 @@ export function StatisticsView() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       {/* Header Banner */}
-      <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl shadow-md">
+      <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl">
         <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-widest mb-1">
           <BarChart3 className="w-4 h-4" />
           <span>Satu Data Papua Selatan</span>
@@ -79,8 +86,8 @@ export function StatisticsView() {
             onClick={() => setSelectedMetric(item.key as any)}
             className={`p-5 rounded-xl border transition cursor-pointer ${
               selectedMetric === item.key
-                ? 'bg-white border-2 border-[#0f3d5c] shadow-md'
-                : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+                ? 'bg-white border-2 border-[#0f3d5c]'
+                : 'bg-white border-slate-200 hover:border-slate-300'
             }`}
           >
             <span className="text-xs text-slate-500 font-medium block">{item.label}</span>
@@ -94,7 +101,7 @@ export function StatisticsView() {
       </div>
 
       {/* Main Interactive Chart Section */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-lg font-bold text-slate-900">
@@ -126,7 +133,7 @@ export function StatisticsView() {
                   <div className="w-full max-w-[50px] bg-slate-100 rounded-t-lg overflow-hidden flex items-end h-[85%]">
                     <div
                       style={{ height: `${heightPct}%`, backgroundColor: currentConfig.color }}
-                      className="w-full rounded-t-lg transition-all duration-700 group-hover:opacity-90 shadow-sm"
+                      className="w-full rounded-t-lg transition-all duration-700 group-hover:opacity-90"
                     ></div>
                   </div>
 
@@ -146,7 +153,7 @@ export function StatisticsView() {
       </div>
 
       {/* Profil Statistik Komparasi 4 Kabupaten */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6">
         <div>
           <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block mb-1">
             Data Spasial 4 Kabupaten

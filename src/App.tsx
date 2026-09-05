@@ -17,9 +17,11 @@ import { StatisticsView } from './views/StatisticsView';
 import { GalleryView } from './views/GalleryView';
 import { ContactView } from './views/ContactView';
 import { AdminView } from './views/AdminView';
+import { AdminLoginView } from './views/AdminLoginView';
 
 // Services & Types
 import { StorageService } from './services/storage';
+import { ScrollProgressBar, ScrollToTopButton } from './components/ScrollAnimations';
 import { 
   ActivePage, 
   PlanningDocument, 
@@ -32,6 +34,7 @@ import { CheckCircle2, X } from 'lucide-react';
 
 export default function App() {
   const [activePage, setActivePage] = useState<ActivePage>('beranda');
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => StorageService.isAdminLoggedIn());
 
   // Data state
   const [documents, setDocuments] = useState<PlanningDocument[]>([]);
@@ -67,10 +70,33 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Administrator logout handler
+  const handleAdminLogout = () => {
+    StorageService.logout();
+    setIsAdminLoggedIn(false);
+    handlePageChange('beranda');
+    setToastMessage('Anda telah berhasil keluar dari sesi administrator.');
+  };
+
   // Document download handler
   const handleDownloadDocument = (doc: PlanningDocument) => {
     StorageService.incrementDownload(doc.id);
     setDocuments(StorageService.getDocuments());
+
+    // Jika berkas asli telah diunggah ke server Hostinger
+    if (doc.fileUrl) {
+      const link = document.createElement('a');
+      link.href = doc.fileUrl;
+      link.target = '_blank';
+      link.download = doc.fileUrl.split('/').pop() || `${doc.title}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setToastMessage(`Mengunduh berkas "${doc.title}" dari server Hostinger.`);
+      setTimeout(() => setToastMessage(null), 4000);
+      return;
+    }
 
     // Generate real readable text-based document summary download
     const content = `PEMERINTAH PROVINSI PAPUA SELATAN
@@ -127,9 +153,15 @@ Bapperida Provinsi Papua Selatan
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans selection:bg-amber-300 selection:text-slate-900">
+      {/* Scroll Progress Bar at very top */}
+      <ScrollProgressBar />
+
+      {/* Floating Scroll to Top button */}
+      <ScrollToTopButton />
+
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-3 animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 flex items-center gap-3 animate-in slide-in-from-bottom-5">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <span className="text-xs font-semibold">{toastMessage}</span>
           <button 
@@ -146,7 +178,8 @@ Bapperida Provinsi Papua Selatan
         activePage={activePage}
         setActivePage={handlePageChange}
         onOpenSearch={() => setIsSearchOpen(true)}
-        isAdmin={activePage === 'admin'}
+        isAdmin={isAdminLoggedIn}
+        onLogout={handleAdminLogout}
       />
 
       {/* Main Content Area */}
@@ -197,18 +230,34 @@ Bapperida Provinsi Papua Selatan
         {activePage === 'kontak' && <ContactView />}
 
         {activePage === 'admin' && (
-          <AdminView
-            documents={documents}
-            news={news}
-            complaints={complaints}
-            agendas={agendas}
-            onDataChanged={loadData}
-          />
+          isAdminLoggedIn ? (
+            <AdminView
+              documents={documents}
+              news={news}
+              complaints={complaints}
+              agendas={agendas}
+              gallery={gallery}
+              onDataChanged={loadData}
+              onLogout={handleAdminLogout}
+            />
+          ) : (
+            <AdminLoginView
+              onLoginSuccess={() => {
+                setIsAdminLoggedIn(true);
+                setToastMessage('Autentikasi berhasil! Selamat datang di Panel Administrator BAPPERIDA.');
+              }}
+              setActivePage={handlePageChange}
+            />
+          )
         )}
       </main>
 
       {/* Footer */}
-      <Footer setActivePage={handlePageChange} />
+      <Footer 
+        setActivePage={handlePageChange} 
+        isAdmin={isAdminLoggedIn}
+        onLogout={handleAdminLogout}
+      />
 
       {/* Global Search Modal */}
       <GlobalSearchModal

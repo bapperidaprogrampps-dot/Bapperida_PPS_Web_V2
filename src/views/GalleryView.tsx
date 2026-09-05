@@ -20,7 +20,7 @@ export function GalleryView({ gallery }: GalleryViewProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       {/* Header Banner */}
-      <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl shadow-md">
+      <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl">
         <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-widest mb-1">
           <ImageIcon className="w-4 h-4" />
           <span>Dokumentasi Visual</span>
@@ -59,7 +59,7 @@ export function GalleryView({ gallery }: GalleryViewProps) {
           <div
             key={item.id}
             onClick={() => setActivePhoto(item)}
-            className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition cursor-pointer group flex flex-col"
+            className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer group flex flex-col"
           >
             <div className="aspect-4/3 w-full overflow-hidden bg-slate-100 relative">
               <img
@@ -69,7 +69,7 @@ export function GalleryView({ gallery }: GalleryViewProps) {
                 referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                <span className="p-2 rounded-full bg-white/80 text-slate-900 shadow-md">
+                <span className="p-2 rounded-full bg-white/90 text-slate-900 border border-slate-200">
                   <Eye className="w-5 h-5" />
                 </span>
               </div>
@@ -104,7 +104,7 @@ export function GalleryView({ gallery }: GalleryViewProps) {
       {/* Lightbox Modal */}
       {activePhoto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl border border-slate-200 max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <span className="text-xs font-bold text-[#0f3d5c]">{activePhoto.category}</span>
               <button

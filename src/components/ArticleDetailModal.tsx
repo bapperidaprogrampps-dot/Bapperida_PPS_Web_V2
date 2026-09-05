@@ -20,7 +20,7 @@ export function ArticleDetailModal({ article, onClose }: ArticleDetailModalProps
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-xl border border-slate-200 w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Top bar */}
         <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <button
@@ -70,7 +70,7 @@ export function ArticleDetailModal({ article, onClose }: ArticleDetailModalProps
           </div>
 
           {/* Featured Image */}
-          <div className="rounded-xl overflow-hidden shadow-sm border border-slate-200 aspect-video bg-slate-100">
+          <div className="rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100">
             <img 
               src={article.imageUrl} 
               alt={article.title}

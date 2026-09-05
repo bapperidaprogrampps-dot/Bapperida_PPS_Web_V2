@@ -31,7 +31,7 @@ export function BapperidaLogo({ className = 'h-10 w-auto', showText = true }: { 
 export function PapuaSelatanLogo({ className = 'h-12 w-auto' }: { className?: string }) {
   return (
     <div className={`inline-flex items-center justify-center select-none ${className}`}>
-      <svg viewBox="0 0 160 200" className="w-full h-full drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 160 200" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#1E5EA8" />
@@ -209,42 +209,57 @@ export function PapuaSelatanLogo({ className = 'h-12 w-auto' }: { className?: st
 export function GovernmentBrandHeader({ 
   variant = 'dark',
   showSubtext = true,
+  showProvinceText = true,
+  simple = false,
+  logoClassName,
   onClick
 }: { 
   variant?: 'light' | 'dark';
   showSubtext?: boolean;
+  showProvinceText?: boolean;
+  simple?: boolean;
+  logoClassName?: string;
   onClick?: () => void;
 }) {
   const isDark = variant === 'dark';
   return (
     <div 
       onClick={onClick}
-      className={`flex items-center gap-3 select-none ${onClick ? 'cursor-pointer' : ''}`}
+      className={`flex items-center gap-2 sm:gap-2.5 select-none ${onClick ? 'cursor-pointer' : ''}`}
     >
-      <div className="flex items-center gap-2">
-        <PapuaSelatanLogo className="h-10 w-auto" />
-        <div className="h-8 w-px bg-slate-300 dark:bg-slate-600/60 hidden sm:block"></div>
-        <BapperidaLogo className="h-9 w-auto" showText={false} />
+      <div className="flex items-center">
+        <BapperidaLogo 
+          className={logoClassName || (simple ? "h-7 sm:h-8 w-auto" : "h-10 sm:h-11 w-auto")} 
+          showText={false} 
+        />
       </div>
-      <div className="flex flex-col">
-        <span className={`text-[11px] font-semibold uppercase tracking-wider ${
-          isDark ? 'text-amber-400' : 'text-amber-600'
-        }`}>
-          Pemerintah Provinsi Papua Selatan
-        </span>
+      <div className="flex flex-col justify-center">
+        {!simple && showProvinceText && (
+          <span className={`text-[11px] font-semibold uppercase tracking-wider ${
+            isDark ? 'text-amber-400' : 'text-amber-600'
+          }`}>
+            Pemerintah Provinsi Papua Selatan
+          </span>
+        )}
         <div className="flex items-baseline gap-1.5">
-          <span className={`text-base sm:text-lg font-bold tracking-tight leading-none ${
+          <span className={`text-xl sm:text-2xl font-black tracking-tight leading-none ${
             isDark ? 'text-white' : 'text-[#0f3d5c]'
           }`}>
             BAPPERIDA
           </span>
-          <span className={`text-xs sm:text-sm font-semibold leading-none ${
-            isDark ? 'text-slate-200' : 'text-slate-600'
-          }`}>
-            PROVINSI PAPUA SELATAN
-          </span>
+          {simple ? (
+            <span className="text-xs sm:text-sm font-bold text-amber-500 tracking-wider">
+              PPS
+            </span>
+          ) : (
+            <span className={`text-xs sm:text-sm font-semibold leading-none ${
+              isDark ? 'text-slate-200' : 'text-slate-600'
+            }`}>
+              PROVINSI PAPUA SELATAN
+            </span>
+          )}
         </div>
-        {showSubtext && (
+        {!simple && showSubtext && (
           <span className={`text-[10px] sm:text-[11px] leading-tight mt-0.5 line-clamp-1 ${
             isDark ? 'text-slate-300' : 'text-slate-500'
           }`}>

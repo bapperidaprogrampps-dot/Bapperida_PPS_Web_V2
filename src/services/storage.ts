@@ -4,14 +4,19 @@ import {
   Complaint, 
   AgendaEvent, 
   GalleryItem,
-  InformationRequest 
+  InformationRequest,
+  AgencySettings,
+  IndicatorStat,
+  AdminCredentials
 } from '../types';
 import { 
   initialArticles, 
   initialDocuments, 
   initialComplaints, 
   initialAgendas, 
-  initialGallery 
+  initialGallery,
+  defaultAgencySettings,
+  regionalIndicatorStats
 } from '../data/mockData';
 
 const KEYS = {
@@ -22,6 +27,10 @@ const KEYS = {
   GALLERY: 'bapperida_pps_gallery_v1',
   INFO_REQUESTS: 'bapperida_pps_info_requests_v1',
   ADMIN_AUTH: 'bapperida_pps_admin_auth_v1',
+  ADMIN_CREDENTIALS: 'bapperida_pps_admin_credentials_v1',
+  ADMIN_SESSION_USER: 'bapperida_pps_admin_session_user_v1',
+  SETTINGS: 'bapperida_pps_settings_v1',
+  INDICATORS: 'bapperida_pps_indicators_v1',
 };
 
 export const StorageService = {
@@ -109,6 +118,11 @@ export const StorageService = {
     docs.unshift(newDoc);
     this.saveDocuments(docs);
     return newDoc;
+  },
+
+  updateDocument(updated: PlanningDocument): void {
+    const docs = this.getDocuments().map(d => d.id === updated.id ? updated : d);
+    this.saveDocuments(docs);
   },
 
   deleteDocument(id: string): void {
@@ -219,9 +233,19 @@ export const StorageService = {
     return newAgenda;
   },
 
+  updateAgenda(updated: AgendaEvent): void {
+    const agendas = this.getAgendas().map(a => a.id === updated.id ? updated : a);
+    this.saveAgendas(agendas);
+  },
+
   deleteAgenda(id: string): void {
     const agendas = this.getAgendas().filter(a => a.id !== id);
     this.saveAgendas(agendas);
+  },
+
+  deleteComplaint(id: string): void {
+    const complaints = this.getComplaints().filter(c => c.id !== id);
+    this.saveComplaints(complaints);
   },
 
   // Gallery
@@ -235,6 +259,35 @@ export const StorageService = {
     return initialGallery;
   },
 
+  saveGallery(items: GalleryItem[]): void {
+    try {
+      localStorage.setItem(KEYS.GALLERY, JSON.stringify(items));
+    } catch {
+      // ignore
+    }
+  },
+
+  addGalleryItem(item: Omit<GalleryItem, 'id'>): GalleryItem {
+    const gallery = this.getGallery();
+    const newItem: GalleryItem = {
+      ...item,
+      id: `gal-${Date.now()}`
+    };
+    gallery.unshift(newItem);
+    this.saveGallery(gallery);
+    return newItem;
+  },
+
+  updateGalleryItem(updated: GalleryItem): void {
+    const gallery = this.getGallery().map(g => g.id === updated.id ? updated : g);
+    this.saveGallery(gallery);
+  },
+
+  deleteGalleryItem(id: string): void {
+    const gallery = this.getGallery().filter(g => g.id !== id);
+    this.saveGallery(gallery);
+  },
+
   // Information Requests (PPID)
   getInfoRequests(): InformationRequest[] {
     try {
@@ -244,6 +297,14 @@ export const StorageService = {
       // ignore
     }
     return [];
+  },
+
+  saveInfoRequests(reqs: InformationRequest[]): void {
+    try {
+      localStorage.setItem(KEYS.INFO_REQUESTS, JSON.stringify(reqs));
+    } catch {
+      // ignore
+    }
   },
 
   addInfoRequest(req: Omit<InformationRequest, 'id' | 'requestNo' | 'status' | 'createdAt'>): InformationRequest {
@@ -258,15 +319,95 @@ export const StorageService = {
       createdAt: new Date().toISOString().split('T')[0]
     };
     list.unshift(newReq);
-    try {
-      localStorage.setItem(KEYS.INFO_REQUESTS, JSON.stringify(list));
-    } catch {
-      // ignore
-    }
+    this.saveInfoRequests(list);
     return newReq;
   },
 
-  // Admin Auth Status
+  updateInfoRequestStatus(id: string, status: InformationRequest['status'], responseNote?: string): void {
+    const list = this.getInfoRequests();
+    const found = list.find(r => r.id === id);
+    if (found) {
+      found.status = status;
+      if (responseNote !== undefined) found.responseNote = responseNote;
+      this.saveInfoRequests(list);
+    }
+  },
+
+  deleteInfoRequest(id: string): void {
+    const list = this.getInfoRequests().filter(r => r.id !== id);
+    this.saveInfoRequests(list);
+  },
+
+  // Agency Settings (Sambutan, Kontak, Link Eksternal)
+  getAgencySettings(): AgencySettings {
+    try {
+      const data = localStorage.getItem(KEYS.SETTINGS);
+      if (data) return { ...defaultAgencySettings, ...JSON.parse(data) };
+    } catch {
+      // ignore
+    }
+    return defaultAgencySettings;
+  },
+
+  saveAgencySettings(settings: AgencySettings): void {
+    try {
+      localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings));
+    } catch {
+      // ignore
+    }
+  },
+
+  // Regional Macro Indicators
+  getIndicatorStats(): IndicatorStat[] {
+    try {
+      const data = localStorage.getItem(KEYS.INDICATORS);
+      if (data) return JSON.parse(data);
+    } catch {
+      // ignore
+    }
+    return regionalIndicatorStats;
+  },
+
+  saveIndicatorStats(stats: IndicatorStat[]): void {
+    try {
+      localStorage.setItem(KEYS.INDICATORS, JSON.stringify(stats));
+    } catch {
+      // ignore
+    }
+  },
+
+  // Admin Auth & Credentials Management
+  getDefaultAdminCredentials(): AdminCredentials {
+    return {
+      email: 'bapperidaprogram.pps@gmail.com',
+      username: 'admin',
+      passwordHash: 'BapperidaPPS#2025',
+      name: 'Administrator BAPPERIDA PPS',
+      role: 'Super Administrator',
+      lastPasswordChangedAt: '2025-01-01T08:00:00.000Z'
+    };
+  },
+
+  getAdminCredentials(): AdminCredentials {
+    try {
+      const data = localStorage.getItem(KEYS.ADMIN_CREDENTIALS);
+      if (data) {
+        return { ...this.getDefaultAdminCredentials(), ...JSON.parse(data) };
+      }
+    } catch {
+      // ignore
+    }
+    return this.getDefaultAdminCredentials();
+  },
+
+  saveAdminCredentials(creds: AdminCredentials): void {
+    try {
+      localStorage.setItem(KEYS.ADMIN_CREDENTIALS, JSON.stringify(creds));
+    } catch {
+      // ignore
+    }
+  },
+
   isAdminLoggedIn(): boolean {
     try {
       return localStorage.getItem(KEYS.ADMIN_AUTH) === 'true';
@@ -275,13 +416,121 @@ export const StorageService = {
     }
   },
 
-  setAdminLoggedIn(val: boolean): void {
+  getCurrentAdminUser(): AdminCredentials {
+    try {
+      const session = localStorage.getItem(KEYS.ADMIN_SESSION_USER);
+      if (session) return JSON.parse(session);
+    } catch {
+      // ignore
+    }
+    return this.getAdminCredentials();
+  },
+
+  validateAdminLogin(identifier: string, passwordInput: string): { success: boolean; message: string; user?: AdminCredentials } {
+    const creds = this.getAdminCredentials();
+    const cleanId = identifier.trim().toLowerCase();
+    const isEmailMatch = cleanId === creds.email.toLowerCase();
+    const isUserMatch = cleanId === creds.username.toLowerCase() || cleanId === 'bapperida';
+
+    if (!isEmailMatch && !isUserMatch) {
+      return {
+        success: false,
+        message: 'Email atau username tidak terdaftar dalam sistem administrator.'
+      };
+    }
+
+    if (passwordInput !== creds.passwordHash) {
+      return {
+        success: false,
+        message: 'Kata sandi (password) yang Anda masukkan salah. Silakan coba lagi.'
+      };
+    }
+
+    // Set logged in session
+    this.setAdminLoggedIn(true, creds);
+
+    return {
+      success: true,
+      message: 'Autentikasi berhasil! Mengalihkan ke Panel Administrator...',
+      user: creds
+    };
+  },
+
+  changeAdminPassword(oldPassword: string, newPassword: string): { success: boolean; message: string } {
+    const creds = this.getAdminCredentials();
+
+    if (oldPassword !== creds.passwordHash) {
+      return {
+        success: false,
+        message: 'Kata sandi lama yang Anda masukkan tidak sesuai.'
+      };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return {
+        success: false,
+        message: 'Kata sandi baru minimal harus terdiri dari 6 karakter.'
+      };
+    }
+
+    if (newPassword === oldPassword) {
+      return {
+        success: false,
+        message: 'Kata sandi baru tidak boleh sama persis dengan kata sandi lama.'
+      };
+    }
+
+    const updatedCreds: AdminCredentials = {
+      ...creds,
+      passwordHash: newPassword,
+      lastPasswordChangedAt: new Date().toISOString()
+    };
+
+    this.saveAdminCredentials(updatedCreds);
+    localStorage.setItem(KEYS.ADMIN_SESSION_USER, JSON.stringify(updatedCreds));
+
+    return {
+      success: true,
+      message: 'Kata sandi berhasil diperbarui. Harap simpan kata sandi baru Anda dengan aman.'
+    };
+  },
+
+  resetAdminPasswordToDefault(): { success: boolean; message: string } {
+    const defaults = this.getDefaultAdminCredentials();
+    this.saveAdminCredentials(defaults);
+    localStorage.setItem(KEYS.ADMIN_SESSION_USER, JSON.stringify(defaults));
+    return {
+      success: true,
+      message: 'Kata sandi berhasil direset ke sandi bawaan (BapperidaPPS#2025).'
+    };
+  },
+
+  setAdminLoggedIn(val: boolean, user?: AdminCredentials): void {
     try {
       if (val) {
         localStorage.setItem(KEYS.ADMIN_AUTH, 'true');
+        if (user) {
+          localStorage.setItem(KEYS.ADMIN_SESSION_USER, JSON.stringify(user));
+        }
       } else {
         localStorage.removeItem(KEYS.ADMIN_AUTH);
+        localStorage.removeItem(KEYS.ADMIN_SESSION_USER);
       }
+    } catch {
+      // ignore
+    }
+  },
+
+  logout(): void {
+    this.setAdminLoggedIn(false);
+  },
+
+  // Reset all local storage to default initial data
+  resetAllToDefault(): void {
+    try {
+      Object.values(KEYS).forEach(k => {
+        localStorage.removeItem(k);
+      });
     } catch {
       // ignore
     }

@@ -48,6 +48,8 @@ export interface PlanningDocument {
   downloadCount: number;
   uploadDate: string;
   description: string;
+  fileUrl?: string; // URL berkas di server Hostinger (misal /uploads/documents/rpjpd.pdf)
+  storageProvider?: 'hostinger-server' | 'hostinger-php' | 'external' | 'local';
 }
 
 export type ComplaintStatus = 'Menunggu Verifikasi' | 'Sedang Diproses' | 'Ditindaklanjuti' | 'Selesai';
@@ -125,4 +127,52 @@ export interface RegencyStat {
   villagesCount: number;
   ipm: number;
   primaryPotential: string;
+}
+
+export interface AgencySettings {
+  leaderName: string;
+  leaderTitle: string;
+  leaderRank: string;
+  leaderPhoto: string;
+  leaderMotto: string;
+  speechTitle: string;
+  speechOpening: string;
+  speechBody: string;
+  speechClosing: string;
+  officeAddress: string;
+  officeEmail: string;
+  officePhone: string;
+  officeHours: string;
+  musrenbangUrl: string;
+  sipdUrl: string;
+  satuDataUrl: string;
+  helpdeskWhatsapp?: string;
+  krisnaUrl?: string;
+  provincialPortalUrl?: string;
+  bpsPapuaSelatanUrl?: string;
+  laporUrl?: string;
+  heroVideoTitle?: string;
+  heroVideoSubtitle?: string;
+  heroVideoLocation?: string;
+  heroVideoCustomName?: string;
+  heroVideoServerUrl?: string; // URL video di penyimpanan Hostinger (misal: /uploads/videos/hero-anim-ha.mp4)
+}
+
+export type StorageProvider = 'hostinger-server' | 'hostinger-php' | 'custom-url' | 'browser-offline';
+
+export interface ServerStorageConfig {
+  provider: StorageProvider;
+  customApiUrl: string; // misal: '/api/upload' atau 'https://domain.com/api-hostinger/upload.php'
+  uploadBasePath: string; // default '/uploads'
+  maxFileSizeMB: number; // default 120
+  autoFallbackToIndexedDb: boolean;
+}
+
+export interface AdminCredentials {
+  email: string;
+  username: string;
+  passwordHash: string;
+  name: string;
+  role: string;
+  lastPasswordChangedAt?: string;
 }

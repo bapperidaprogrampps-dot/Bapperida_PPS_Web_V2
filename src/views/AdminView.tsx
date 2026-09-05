@@ -1,638 +1,470 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Shield, 
+  LayoutDashboard, 
   FileText, 
   Newspaper, 
-  MessageSquare, 
   Calendar, 
-  Plus, 
-  Trash2, 
+  Image as ImageIcon, 
+  MessageSquare, 
+  FileQuestion, 
+  Award, 
+  TrendingUp, 
+  Sliders, 
+  Film,
+  Server,
+  LogOut, 
   CheckCircle2, 
-  AlertCircle,
-  Eye,
-  Send,
-  Lock,
-  LogOut,
-  Clock
+  ChevronRight, 
+  Bell, 
+  Sparkles, 
+  ExternalLink,
+  KeyRound,
+  ShieldCheck,
+  X
 } from 'lucide-react';
-import { PlanningDocument, NewsArticle, Complaint, AgendaEvent, DocumentCategory, ComplaintStatus } from '../types';
+import { 
+  PlanningDocument, 
+  NewsArticle, 
+  Complaint, 
+  AgendaEvent, 
+  GalleryItem, 
+  InformationRequest 
+} from '../types';
 import { StorageService } from '../services/storage';
+
+// Modular Admin Tabs
+import { AdminDashboardTab } from '../components/admin/AdminDashboardTab';
+import { AdminDocumentsTab } from '../components/admin/AdminDocumentsTab';
+import { AdminNewsTab } from '../components/admin/AdminNewsTab';
+import { AdminAgendaTab } from '../components/admin/AdminAgendaTab';
+import { AdminGalleryTab } from '../components/admin/AdminGalleryTab';
+import { AdminComplaintsTab } from '../components/admin/AdminComplaintsTab';
+import { AdminPpidTab } from '../components/admin/AdminPpidTab';
+import { AdminLeaderSpeechTab } from '../components/admin/AdminLeaderSpeechTab';
+import { AdminIndicatorsTab } from '../components/admin/AdminIndicatorsTab';
+import { AdminSettingsTab } from '../components/admin/AdminSettingsTab';
+import { AdminHeroVideoTab } from '../components/admin/AdminHeroVideoTab';
+import { AdminStorageTab } from '../components/admin/AdminStorageTab';
+import { AdminSecurityTab } from '../components/admin/AdminSecurityTab';
+
+export type AdminTabId = 
+  | 'dashboard' 
+  | 'dokumen' 
+  | 'berita' 
+  | 'agenda' 
+  | 'galeri' 
+  | 'pengaduan' 
+  | 'ppid' 
+  | 'sambutan' 
+  | 'indikator' 
+  | 'video-beranda'
+  | 'penyimpanan-hostinger'
+  | 'keamanan'
+  | 'instansi';
 
 interface AdminViewProps {
   documents: PlanningDocument[];
   news: NewsArticle[];
   complaints: Complaint[];
   agendas: AgendaEvent[];
+  gallery?: GalleryItem[];
   onDataChanged: () => void;
+  onLogout?: () => void;
 }
 
-export function AdminView({ documents, news, complaints, agendas, onDataChanged }: AdminViewProps) {
-  // Simple simulation auth state
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dokumen' | 'berita' | 'pengaduan' | 'agenda'>('pengaduan');
+export function AdminView({ 
+  documents, 
+  news, 
+  complaints, 
+  agendas, 
+  gallery = [], 
+  onDataChanged,
+  onLogout 
+}: AdminViewProps) {
+  const [activeTab, setActiveTab] = useState<AdminTabId>('dashboard');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // New Document state
-  const [docTitle, setDocTitle] = useState('');
-  const [docCategory, setDocCategory] = useState<DocumentCategory>('RKPD');
-  const [docYear, setDocYear] = useState('2026');
-  const [docDescription, setDocDescription] = useState('');
-  const [docLegalBasis, setDocLegalBasis] = useState('');
-  const [docFileSize, setDocFileSize] = useState('8.5 MB');
+  // Local state for PPID info requests
+  const [infoRequests, setInfoRequests] = useState<InformationRequest[]>([]);
 
-  // New News state
-  const [newsTitle, setNewsTitle] = useState('');
-  const [newsCategory, setNewsCategory] = useState('Pembangunan');
-  const [newsSummary, setNewsSummary] = useState('');
-  const [newsContent, setNewsContent] = useState('');
-  const [newsAuthor, setNewsAuthor] = useState('Humas Bapperida Papua Selatan');
+  // Current admin credentials
+  const currentAdmin = StorageService.getCurrentAdminUser();
 
-  // Complaint response state
-  const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
-  const [newStatus, setNewStatus] = useState<ComplaintStatus>('Sedang Diproses');
-  const [officialResponse, setOfficialResponse] = useState('');
-  const [responderName, setResponderName] = useState('Tim Teknis Perencanaan Bapperida PPS');
+  // Load PPID requests
+  useEffect(() => {
+    setInfoRequests(StorageService.getInfoRequests());
+  }, [complaints, documents]);
 
-  // New Agenda state
-  const [agendaTitle, setAgendaTitle] = useState('');
-  const [agendaDate, setAgendaDate] = useState('2026-09-15');
-  const [agendaTime, setAgendaTime] = useState('09.00 - 15.00 WIT');
-  const [agendaLocation, setAgendaLocation] = useState('Aula Kantor Gubernur Papua Selatan, Salor, Merauke');
-  const [agendaOrganizer, setAgendaOrganizer] = useState('Bapperida Provinsi Papua Selatan');
-  const [agendaCategory, setAgendaCategory] = useState('Musrenbang');
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
 
-  // Handlers
-  const handleAddDocument = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!docTitle || !docDescription || !docLegalBasis) return;
-
-    StorageService.addDocument({
-      title: docTitle,
-      category: docCategory,
-      year: docYear,
-      regency: 'Provinsi',
-      description: docDescription,
-      legalBasis: docLegalBasis,
-      fileSize: docFileSize,
-      fileFormat: 'PDF'
-    });
-
-    setDocTitle('');
-    setDocDescription('');
-    setDocLegalBasis('');
+  const handleDataChangedWithReload = () => {
+    setInfoRequests(StorageService.getInfoRequests());
     onDataChanged();
   };
 
-  const handleDeleteDocument = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus dokumen ini?')) {
-      StorageService.deleteDocument(id);
-      onDataChanged();
+  const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
+
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false);
+    StorageService.logout();
+    if (onLogout) {
+      onLogout();
     }
   };
 
-  const handleAddNews = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newsTitle || !newsSummary || !newsContent) return;
-
-    StorageService.addArticle({
-      title: newsTitle,
-      slug: newsTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      category: newsCategory as any,
-      summary: newsSummary,
-      content: newsContent,
-      author: newsAuthor,
-      publishedAt: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
-      imageUrl: 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=800&q=80',
-      status: 'published',
-      tags: [newsCategory, 'Papua Selatan']
-    });
-
-    setNewsTitle('');
-    setNewsSummary('');
-    setNewsContent('');
-    onDataChanged();
-  };
-
-  const handleDeleteNews = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus artikel berita ini?')) {
-      StorageService.deleteArticle(id);
-      onDataChanged();
+  // Tab definitions
+  const NAV_ITEMS = [
+    {
+      group: 'Utama & Ikhtisar',
+      items: [
+        { id: 'dashboard', label: 'Ringkasan Dashboard', icon: LayoutDashboard, badge: null }
+      ]
+    },
+    {
+      group: 'Publikasi & Perencanaan',
+      items: [
+        { id: 'dokumen', label: 'Dokumen Perencanaan', icon: FileText, badge: documents.length },
+        { id: 'berita', label: 'Berita & Artikel', icon: Newspaper, badge: news.length },
+        { id: 'agenda', label: 'Agenda & Musrenbang', icon: Calendar, badge: agendas.length },
+        { id: 'galeri', label: 'Galeri & Dokumentasi', icon: ImageIcon, badge: gallery.length },
+      ]
+    },
+    {
+      group: 'Layanan Aspirasi & KIP',
+      items: [
+        { 
+          id: 'pengaduan', 
+          label: 'Pengaduan Warga', 
+          icon: MessageSquare, 
+          badge: complaints.filter(c => c.status !== 'Selesai').length,
+          badgeColor: 'bg-rose-500 text-white'
+        },
+        { 
+          id: 'ppid', 
+          label: 'Permohonan PPID', 
+          icon: FileQuestion, 
+          badge: infoRequests.filter(r => r.status !== 'Tersedia' && r.status !== 'Ditolak').length,
+          badgeColor: 'bg-amber-500 text-slate-950'
+        },
+      ]
+    },
+    {
+      group: 'Infrastruktur & Penyimpanan',
+      items: [
+        { id: 'penyimpanan-hostinger', label: 'Penyimpanan Hostinger', icon: Server, badge: 'Server' },
+      ]
+    },
+    {
+      group: 'Konfigurasi Konten & Wilayah',
+      items: [
+        { id: 'video-beranda', label: 'Unggah Video Beranda', icon: Film, badge: 'Admin' },
+        { id: 'sambutan', label: 'Profil & Sambutan Pimpinan', icon: Award, badge: null },
+        { id: 'indikator', label: 'Indikator Makro Pembangunan', icon: TrendingUp, badge: null },
+        { id: 'instansi', label: 'Pengaturan Umum & Kontak', icon: Sliders, badge: null },
+      ]
+    },
+    {
+      group: 'Keamanan & Kredensial',
+      items: [
+        { id: 'keamanan', label: 'Keamanan & Ganti Sandi', icon: KeyRound, badge: 'Kredensial' },
+      ]
     }
-  };
-
-  const handleUpdateComplaint = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCompId || !officialResponse) return;
-
-    StorageService.updateComplaintStatus(selectedCompId, newStatus, officialResponse, responderName);
-    setSelectedCompId(null);
-    setOfficialResponse('');
-    onDataChanged();
-  };
-
-  const handleAddAgenda = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!agendaTitle) return;
-
-    StorageService.addAgenda({
-      title: agendaTitle,
-      date: agendaDate,
-      time: agendaTime,
-      location: agendaLocation,
-      organizer: agendaOrganizer,
-      description: `Rapat koordinasi teknis ${agendaTitle} bersama stakeholder terkait.`,
-      status: 'Akan Datang',
-      category: agendaCategory
-    });
-
-    setAgendaTitle('');
-    onDataChanged();
-  };
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Admin Header */}
-      <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 uppercase tracking-widest mb-1">
-            <Shield className="w-4 h-4" />
-            <span>Panel Pengelola Konten (CMS Internal)</span>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      {/* Toast Notification Alert */}
+      {toastMessage && (
+        <div className="fixed top-20 right-4 sm:right-8 z-50 animate-in slide-in-from-top-4 duration-300">
+          <div className="bg-slate-900 text-white px-5 py-3.5 rounded-xl border border-slate-700 flex items-center gap-3 text-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{toastMessage}</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Dashboard Pengelola Portal Bapperida PPS
+        </div>
+      )}
+
+      {/* Admin Panel Main Header */}
+      <div className="bg-slate-950 text-white p-5 sm:p-7 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-60 h-60 bg-[#0f3d5c]/60 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[11px] font-bold">
+            <Shield className="w-3.5 h-3.5 text-amber-400" />
+            <span>Portal Administration CMS &bull; Bapperida PPS</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+            Pusat Pengelolaan Konten Terpadu Portal Resmi
           </h1>
-          <p className="text-xs text-slate-300 mt-1">
-            Kelola data dokumen perencanaan, rilis berita, tanggapan pengaduan warga, dan kalender kegiatan daerah.
+          <p className="text-xs text-slate-300 max-w-2xl">
+            Kelola dan mutakhirkan seluruh fitur situs: dokumen RPJPD/RKPD, rilis siaran pers, foto galeri, jadwal musrenbang, respon pengaduan, sambutan pimpinan, indikator statistik makro, dan kontak pelayanan.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-emerald-950 border border-emerald-500 text-emerald-400 rounded-lg text-xs font-mono font-bold">
-            ● Mode Administrator Aktif
-          </span>
-        </div>
-      </div>
-
-      {/* Metrics Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-xs text-slate-500 font-medium">Dokumen Perencanaan</span>
-          <div className="text-2xl font-black text-[#0f3d5c] mt-1">{documents.length}</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">File publikasi aktif</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-xs text-slate-500 font-medium">Total Berita & Rilis</span>
-          <div className="text-2xl font-black text-amber-600 mt-1">{news.length}</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Artikel kegiatan</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-xs text-slate-500 font-medium">Pengaduan Masuk</span>
-          <div className="text-2xl font-black text-purple-700 mt-1">{complaints.length}</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Tiket aspirasi warga</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-xs text-slate-500 font-medium">Agenda Terjadwal</span>
-          <div className="text-2xl font-black text-emerald-700 mt-1">{agendas.length}</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Kegiatan kedinasan</span>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto text-xs font-bold">
-        {[
-          { id: 'pengaduan', label: `Pengaduan Warga (${complaints.length})`, icon: MessageSquare },
-          { id: 'dokumen', label: `Dokumen Perencanaan (${documents.length})`, icon: FileText },
-          { id: 'berita', label: `Berita & Publikasi (${news.length})`, icon: Newspaper },
-          { id: 'agenda', label: `Agenda Kegiatan (${agendas.length})`, icon: Calendar },
-        ].map(tab => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition ${
-                activeTab === tab.id
-                  ? 'bg-[#0f3d5c] text-white shadow-xs'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* TAB 1: PENGADUAN & ASPIRASI */}
-      {activeTab === 'pengaduan' && (
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-bold text-base text-slate-900">
-              Daftar Tiket Pengaduan & Tindak Lanjut Respons Resmi
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-700">
-                    <th className="p-3 font-bold">No. Tiket</th>
-                    <th className="p-3 font-bold">Pelapor</th>
-                    <th className="p-3 font-bold">Kategori & Kab.</th>
-                    <th className="p-3 font-bold">Subjek</th>
-                    <th className="p-3 font-bold">Status</th>
-                    <th className="p-3 font-bold">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {complaints.map(comp => (
-                    <tr key={comp.id} className="hover:bg-slate-50">
-                      <td className="p-3 font-mono font-bold text-[#0f3d5c]">{comp.ticketNo}</td>
-                      <td className="p-3 font-semibold text-slate-800">{comp.name}</td>
-                      <td className="p-3 text-slate-600">{comp.category} ({comp.regency})</td>
-                      <td className="p-3 text-slate-800 max-w-xs truncate">{comp.subject}</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          comp.status === 'Selesai' ? 'bg-emerald-100 text-emerald-900' :
-                          comp.status === 'Ditindaklanjuti' ? 'bg-purple-100 text-purple-900' :
-                          comp.status === 'Sedang Diproses' ? 'bg-blue-100 text-blue-900' :
-                          'bg-amber-100 text-amber-900'
-                        }`}>
-                          {comp.status}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => {
-                            setSelectedCompId(comp.id);
-                            setNewStatus(comp.status);
-                            setOfficialResponse(comp.response || '');
-                          }}
-                          className="px-2.5 py-1 text-xs font-semibold bg-[#0f3d5c] text-white rounded hover:bg-[#154e74]"
-                        >
-                          Tanggapi
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <div className="relative z-10 flex flex-wrap items-center gap-2 sm:self-center">
+          <div className="px-3 py-1.5 bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-emerald-300 text-xs font-mono font-bold flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="truncate max-w-[170px] sm:max-w-none">{currentAdmin.email}</span>
           </div>
 
-          {/* Modal / Panel Response Form */}
-          {selectedCompId && (
-            <div className="bg-blue-50/50 p-6 rounded-2xl border-2 border-[#0f3d5c] space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-bold text-sm text-slate-900">
-                  Perbarui Status & Tulis Tanggapan Resmi
-                </h4>
-                <button
-                  onClick={() => setSelectedCompId(null)}
-                  className="text-xs text-slate-400 hover:text-slate-600"
-                >
-                  Tutup ✕
-                </button>
-              </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab('keamanan')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border ${
+              activeTab === 'keamanan'
+                ? 'bg-amber-400 text-slate-950 border-amber-400 font-extrabold'
+                : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+            }`}
+            title="Buka menu ganti kata sandi"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-amber-300" />
+            <span>Ganti Sandi</span>
+          </button>
 
-              <form onSubmit={handleUpdateComplaint} className="space-y-3 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Status Penanganan Baru:</label>
-                    <select
-                      value={newStatus}
-                      onChange={e => setNewStatus(e.target.value as any)}
-                      className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs"
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            title="Keluar dari sesi administrator"
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-400" />
+            <span>Keluar</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content Layout with Responsive Sidebar Navigation */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Sidebar Menu (3 cols) */}
+        <aside className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-4 space-y-6">
+          {NAV_ITEMS.map((group, gIdx) => (
+            <div key={gIdx} className="space-y-1.5">
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 pb-1">
+                {group.group}
+              </div>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id as AdminTabId)}
+                      className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer group ${
+                        isActive
+                          ? 'bg-[#0f3d5c] text-white'
+                          : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
                     >
-                      <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
-                      <option value="Sedang Diproses">Sedang Diproses</option>
-                      <option value="Ditindaklanjuti">Ditindaklanjuti</option>
-                      <option value="Selesai">Selesai</option>
-                    </select>
-                  </div>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-amber-300' : 'text-slate-500 group-hover:text-slate-900'}`} />
+                        <span className="truncate">{item.label}</span>
+                      </div>
 
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Nama Pejabat / Unit Penjawab:</label>
-                    <input
-                      type="text"
-                      value={responderName}
-                      onChange={e => setResponderName(e.target.value)}
-                      className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Uraian Jawaban / Tanggapan Kedinasan:</label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={officialResponse}
-                    onChange={e => setOfficialResponse(e.target.value)}
-                    placeholder="Tuliskan hasil telaah dokumen, alokasi anggaran, atau instruksi tindak lanjut lapangan..."
-                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs"
-                  ></textarea>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[#0f3d5c] hover:bg-[#154e74] text-white font-bold rounded-lg text-xs"
-                  >
-                    Simpan Tanggapan Resmi
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCompId(null)}
-                    className="px-4 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs"
-                  >
-                    Batal
-                  </button>
-                </div>
-              </form>
+                      {item.badge !== null && item.badge > 0 && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ml-1.5 ${
+                          isActive
+                            ? 'bg-white/20 text-white'
+                            : (item as any).badgeColor || 'bg-slate-200 text-slate-700'
+                        }`}>
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+          ))}
+
+          {/* Quick Info Box */}
+          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-[11px] space-y-1.5 text-slate-600">
+            <div className="font-bold text-slate-800 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Penyimpanan Lokal Aktif</span>
+            </div>
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Setiap pembaruan yang disimpan akan langsung tampak secara instan pada halaman publik pengunjung tanpa perlu build ulang.
+            </p>
+          </div>
+
+          {/* Quick Logout Button in Sidebar */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full px-3 py-2.5 rounded-xl border border-rose-200 hover:border-rose-300 bg-rose-50/50 hover:bg-rose-50 text-rose-700 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <LogOut className="w-4 h-4 text-rose-600" />
+            <span>Keluar dari Panel Admin</span>
+          </button>
+        </aside>
+
+        {/* Right Tab Content Workspace (9 cols) */}
+        <main className="lg:col-span-9 min-h-[600px]">
+          {activeTab === 'dashboard' && (
+            <AdminDashboardTab
+              documents={documents}
+              news={news}
+              complaints={complaints}
+              agendas={agendas}
+              gallery={gallery}
+              infoRequests={infoRequests}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
           )}
-        </div>
-      )}
 
-      {/* TAB 2: DOKUMEN PERENCANAAN */}
-      {activeTab === 'dokumen' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Form Add Doc (5 cols) */}
-          <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-emerald-600" />
-              Unggah Dokumen Perencanaan Baru
-            </h3>
+          {activeTab === 'dokumen' && (
+            <AdminDocumentsTab
+              documents={documents}
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
 
-            <form onSubmit={handleAddDocument} className="space-y-3 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Nama / Judul Dokumen *</label>
-                <input
-                  type="text"
-                  required
-                  value={docTitle}
-                  onChange={e => setDocTitle(e.target.value)}
-                  placeholder="Contoh: RKPD Provinsi Papua Selatan Tahun 2026"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white"
-                />
+          {activeTab === 'berita' && (
+            <AdminNewsTab
+              news={news}
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'agenda' && (
+            <AdminAgendaTab
+              agendas={agendas}
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'galeri' && (
+            <AdminGalleryTab
+              gallery={gallery}
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'pengaduan' && (
+            <AdminComplaintsTab
+              complaints={complaints}
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'ppid' && (
+            <AdminPpidTab
+              infoRequests={infoRequests}
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'video-beranda' && (
+            <AdminHeroVideoTab
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'penyimpanan-hostinger' && (
+            <AdminStorageTab
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'sambutan' && (
+            <AdminLeaderSpeechTab
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'indikator' && (
+            <AdminIndicatorsTab
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'instansi' && (
+            <AdminSettingsTab
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'keamanan' && (
+            <AdminSecurityTab
+              showToast={showToast}
+              onDataChanged={handleDataChangedWithReload}
+            />
+          )}
+        </main>
+      </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center">
+                <LogOut className="w-6 h-6" />
               </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Kategori Dokumen *</label>
-                  <select
-                    value={docCategory}
-                    onChange={e => setDocCategory(e.target.value as any)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                  >
-                    <option value="RPJPD">RPJPD (20 Tahun)</option>
-                    <option value="RPJMD">RPJMD (5 Tahun)</option>
-                    <option value="RKPD">RKPD (Tahunan)</option>
-                    <option value="Renstra">Renstra Perangkat Daerah</option>
-                    <option value="Renja">Renja Tahunan</option>
-                    <option value="KUA-PPAS">KUA-PPAS Anggaran</option>
-                    <option value="LKPJ">LKPJ Gubernur</option>
-                    <option value="Kajian Riset & Inovasi">Kajian Riset & Inovasi (BRIDA)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Tahun Rencana *</label>
-                  <input
-                    type="text"
-                    required
-                    value={docYear}
-                    onChange={e => setDocYear(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Dasar Hukum / Nomor SK Penetapan *</label>
-                <input
-                  type="text"
-                  required
-                  value={docLegalBasis}
-                  onChange={e => setDocLegalBasis(e.target.value)}
-                  placeholder="Contoh: Pergub Papua Selatan No. 12 Tahun 2025"
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Deskripsi Singkat Dokumen *</label>
-                <textarea
-                  rows={3}
-                  required
-                  value={docDescription}
-                  onChange={e => setDocDescription(e.target.value)}
-                  placeholder="Ringkasan isi berkas..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                ></textarea>
-              </div>
-
               <button
-                type="submit"
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition"
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
               >
-                Terbitkan Dokumen ke Repositori
+                <X className="w-5 h-5" />
               </button>
-            </form>
-          </div>
-
-          {/* List Existing Docs (7 cols) */}
-          <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-bold text-base text-slate-900">
-              Daftar Dokumen Terdaftar ({documents.length})
-            </h3>
-            <div className="space-y-2 max-h-[500px] overflow-y-auto">
-              {documents.map(doc => (
-                <div key={doc.id} className="p-3 rounded-lg border border-slate-200 flex items-center justify-between gap-3 text-xs hover:bg-slate-50">
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="font-bold text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">{doc.category}</span>
-                      <span className="text-[10px] text-slate-400">Tahun {doc.year}</span>
-                    </div>
-                    <h5 className="font-bold text-slate-900">{doc.title}</h5>
-                    <span className="text-[11px] text-slate-500">{doc.legalBasis}</span>
-                  </div>
-
-                  <button
-                    onClick={() => handleDeleteDocument(doc.id)}
-                    className="p-1.5 text-slate-400 hover:text-red-600 transition"
-                    title="Hapus Dokumen"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* TAB 3: BERITA & PUBLIKASI */}
-      {activeTab === 'berita' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Form Add News */}
-          <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-emerald-600" />
-              Tulis Rilis Berita Baru
-            </h3>
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-bold text-slate-900">
+                Keluar dari Sesi Administrator?
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Sesi autentikasi Anda akan diakhiri dan akun administrator akan logout secara aman. Anda dapat masuk kembali kapan saja dengan kata sandi Anda.
+              </p>
+            </div>
 
-            <form onSubmit={handleAddNews} className="space-y-3 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Judul Berita *</label>
-                <input
-                  type="text"
-                  required
-                  value={newsTitle}
-                  onChange={e => setNewsTitle(e.target.value)}
-                  placeholder="Judul artikel berita kegiatan..."
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                />
-              </div>
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+              <span className="text-slate-500">Akun terhubung:</span>
+              <span className="font-mono font-bold text-slate-800 truncate max-w-[200px]">
+                {currentAdmin.email}
+              </span>
+            </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Kategori Berita</label>
-                <select
-                  value={newsCategory}
-                  onChange={e => setNewsCategory(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                >
-                  <option value="Musrenbang">Musrenbang</option>
-                  <option value="Riset & Inovasi">Riset & Inovasi</option>
-                  <option value="Pembangunan">Pembangunan</option>
-                  <option value="Pemerintahan">Pemerintahan</option>
-                  <option value="Pengumuman">Pengumuman</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Ringkasan Berita *</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={newsSummary}
-                  onChange={e => setNewsSummary(e.target.value)}
-                  placeholder="Ringkasan singkat untuk tampilan kartu..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                ></textarea>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Isi Berita Lengkap *</label>
-                <textarea
-                  rows={5}
-                  required
-                  value={newsContent}
-                  onChange={e => setNewsContent(e.target.value)}
-                  placeholder="Tuliskan berita lengkap..."
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                ></textarea>
-              </div>
-
+            <div className="flex items-center gap-3 pt-2">
               <button
-                type="submit"
-                className="w-full py-2.5 bg-[#0f3d5c] hover:bg-[#154e74] text-white font-bold rounded-lg text-xs transition"
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition cursor-pointer"
               >
-                Publikasikan Berita
+                Batal
               </button>
-            </form>
-          </div>
-
-          {/* List News */}
-          <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-bold text-base text-slate-900">
-              Daftar Berita Aktif ({news.length})
-            </h3>
-            <div className="space-y-2 max-h-[500px] overflow-y-auto">
-              {news.map(item => (
-                <div key={item.id} className="p-3 rounded-lg border border-slate-200 flex items-center justify-between gap-3 text-xs hover:bg-slate-50">
-                  <div>
-                    <span className="font-bold text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-900">{item.category}</span>
-                    <h5 className="font-bold text-slate-900 mt-1 line-clamp-1">{item.title}</h5>
-                    <span className="text-[11px] text-slate-400">{item.publishedAt}</span>
-                  </div>
-
-                  <button
-                    onClick={() => handleDeleteNews(item.id)}
-                    className="p-1.5 text-slate-400 hover:text-red-600 transition"
-                    title="Hapus Berita"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+              <button
+                type="button"
+                onClick={handleConfirmLogout}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+                id="btn-confirm-logout-admin"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Ya, Keluar Sekarang</span>
+              </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* TAB 4: AGENDA */}
-      {activeTab === 'agenda' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
-          <h3 className="font-bold text-base text-slate-900">
-            Tambah Agenda Kegiatan Kedinasan Baru
-          </h3>
-          <form onSubmit={handleAddAgenda} className="space-y-3 text-xs max-w-2xl">
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Nama Agenda / Acara *</label>
-              <input
-                type="text"
-                required
-                value={agendaTitle}
-                onChange={e => setAgendaTitle(e.target.value)}
-                placeholder="Contoh: Rapat Sinkronisasi Rencana Kerja Bapperida & Bappeda 4 Kabupaten"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Tanggal (YYYY-MM-DD) *</label>
-                <input
-                  type="date"
-                  required
-                  value={agendaDate}
-                  onChange={e => setAgendaDate(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Waktu Pelaksanaan *</label>
-                <input
-                  type="text"
-                  required
-                  value={agendaTime}
-                  onChange={e => setAgendaTime(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Lokasi / Tempat *</label>
-              <input
-                type="text"
-                required
-                value={agendaLocation}
-                onChange={e => setAgendaLocation(e.target.value)}
-                className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-[#0f3d5c] hover:bg-[#154e74] text-white font-bold rounded-lg text-xs transition"
-            >
-              Simpan Agenda Kegiatan
-            </button>
-          </form>
         </div>
       )}
     </div>

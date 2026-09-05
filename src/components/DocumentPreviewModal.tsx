@@ -86,7 +86,7 @@ Status Keabsahan: Diterbitkan oleh Tim Pokja Perencanaan Makro Bapperida Papua S
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-xl border border-slate-200 w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header with Governmental Crest */}
         <div className="bg-[#0f3d5c] text-white p-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -207,7 +207,7 @@ Status Keabsahan: Diterbitkan oleh Tim Pokja Perencanaan Makro Bapperida Papua S
             </button>
             <button
               onClick={handleDownloadAction}
-              className="flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-[#0f3d5c] hover:bg-[#154e74] rounded-lg shadow-sm transition"
+              className="flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-[#0f3d5c] hover:bg-[#154e74] rounded-lg transition"
               id="modal-download-btn"
             >
               <Download className="w-4 h-4" />
