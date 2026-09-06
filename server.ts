@@ -196,14 +196,22 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 // VITE MIDDLEWARE (Dev) & STATIC FILES (Production)
 // -------------------------------------------------------------
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
+  const isDev = process.env.NODE_ENV !== 'production' && fs.existsSync(path.join(process.cwd(), 'vite.config.ts'));
+
+  if (isDev) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    let distPath = path.join(process.cwd(), 'dist');
+    if (fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'))) {
+      distPath = path.join(process.cwd(), 'dist');
+    } else if (fs.existsSync(path.join(process.cwd(), 'index.html'))) {
+      distPath = process.cwd();
+    }
+
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
