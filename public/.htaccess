@@ -10,8 +10,11 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Allow direct execution of Hostinger PHP upload handler
+  # Allow direct execution of Hostinger PHP upload & data handlers
   RewriteRule ^api-hostinger/(.*)$ api-hostinger/$1 [L]
+  RewriteRule ^api/data/(.*)$ api-hostinger/data.php?key=$1 [QSA,L]
+  RewriteRule ^api/data$ api-hostinger/data.php [QSA,L]
+  RewriteRule ^api/sync/all$ api-hostinger/data.php?all=true [QSA,L]
 
   # Route all other URLs to SPA index.html
   RewriteRule ^ index.html [L]

@@ -20,7 +20,9 @@ import {
   Info
 } from 'lucide-react';
 import { UploadService, ServerStorageStatus, UploadResult } from '../../services/uploadService';
+import { CentralSyncService, SyncStatus } from '../../services/centralSyncService';
 import { ServerStorageConfig, StorageProvider } from '../../types';
+import { Download, Upload, ArrowUpDown, Globe2 } from 'lucide-react';
 
 interface AdminStorageTabProps {
   showToast: (msg: string) => void;
@@ -32,6 +34,12 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  // Central sync state
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(CentralSyncService.getStatus());
+  const [isPushing, setIsPushing] = useState<boolean>(false);
+  const [isPulling, setIsPulling] = useState<boolean>(false);
+  const backupInputRef = React.useRef<HTMLInputElement | null>(null);
+
   // Live upload test state
   const [testCategory, setTestCategory] = useState<'documents' | 'images' | 'videos'>('documents');
   const [isUploadingTest, setIsUploadingTest] = useState<boolean>(false);
@@ -39,7 +47,51 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
 
   useEffect(() => {
     checkStatus();
+    const unsub = CentralSyncService.subscribe((s) => setSyncStatus(s));
+    return () => unsub();
   }, []);
+
+  const handlePushAll = async () => {
+    setIsPushing(true);
+    try {
+      const res = await CentralSyncService.pushAllToServer();
+      showToast(res.message);
+    } catch (e: any) {
+      showToast(`Gagal: ${e.message}`);
+    } finally {
+      setIsPushing(false);
+    }
+  };
+
+  const handlePullAll = async () => {
+    setIsPulling(true);
+    try {
+      const res = await CentralSyncService.pullAllFromServer();
+      showToast(res.message);
+    } catch (e: any) {
+      showToast(`Gagal: ${e.message}`);
+    } finally {
+      setIsPulling(false);
+    }
+  };
+
+  const handleExportBackup = () => {
+    CentralSyncService.exportBackupJson();
+    showToast('File cadangan (.JSON) berhasil diunduh ke komputer Anda.');
+  };
+
+  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const res = await CentralSyncService.importBackupJson(file);
+      showToast(res.message);
+    } catch (err: any) {
+      showToast(`Gagal: ${err.message}`);
+    } finally {
+      e.target.value = '';
+    }
+  };
 
   const checkStatus = async () => {
     setIsChecking(true);
@@ -123,6 +175,104 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
             <Save className="w-4 h-4 text-amber-400" />
             <span>Simpan Pengaturan</span>
           </button>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* KARTU UTAMA: SINKRONISASI TERPUSAT MULTI-BROWSER         */}
+      {/* ======================================================== */}
+      <div className="bg-gradient-to-br from-slate-900 via-[#0b2b40] to-slate-950 text-white rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-lg relative overflow-hidden">
+        {/* Hidden Backup File Input */}
+        <input
+          type="file"
+          ref={backupInputRef}
+          onChange={handleImportBackup}
+          accept=".json,application/json"
+          className="hidden"
+        />
+
+        <div className="relative z-10 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center justify-center shrink-0">
+                <Globe2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  <span>Sinkronisasi Terpusat Server Hostinger</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Aktif
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Menyimpan pengaturan pimpinan, foto, berita, dan pegawai langsung di server Hostinger. Data selalu sinkron di semua browser (Chrome, Firefox, HP) dan domain Hostinger.
+                </p>
+              </div>
+            </div>
+
+            {/* Sync status indicator */}
+            <div className="flex items-center gap-2 bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700/80 text-xs">
+              <span className={`w-2.5 h-2.5 rounded-full ${syncStatus.state === 'synced' ? 'bg-emerald-400 animate-pulse' : syncStatus.state === 'syncing' ? 'bg-amber-400 animate-spin' : 'bg-rose-400'}`}></span>
+              <span className="text-slate-200 font-medium">
+                {syncStatus.message}
+              </span>
+              {syncStatus.lastSyncedAt && (
+                <span className="text-slate-400 text-[11px] ml-1">
+                  ({syncStatus.lastSyncedAt})
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Action Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-2 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={handlePushAll}
+              disabled={isPushing || isPulling}
+              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              <Upload className={`w-4 h-4 ${isPushing ? 'animate-bounce' : ''}`} />
+              <span>{isPushing ? 'Mengunggah ke Server...' : 'Unggah Data ke Server'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handlePullAll}
+              disabled={isPushing || isPulling}
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition cursor-pointer disabled:opacity-50"
+            >
+              <ArrowUpDown className={`w-4 h-4 ${isPulling ? 'animate-spin' : ''}`} />
+              <span>{isPulling ? 'Menarik dari Server...' : 'Tarik Data dari Server'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportBackup}
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span>Unduh Cadangan (.JSON)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => backupInputRef.current?.click()}
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition cursor-pointer"
+            >
+              <FolderTree className="w-4 h-4 text-cyan-400" />
+              <span>Pulihkan dari File (.JSON)</span>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-400 pt-1 gap-2">
+            <span>
+              💡 <strong>Info Hostinger:</strong> Setiap kali Anda menekan <em>"Simpan Perubahan"</em> di menu foto pimpinan atau berita, sistem otomatis mengirim data terbaru ke server Hostinger.
+            </span>
+            <span className="font-mono text-[10px] bg-slate-800/60 px-2 py-0.5 rounded text-amber-300">
+              Lokasi File Server: /uploads/data/*.json
+            </span>
+          </div>
         </div>
       </div>
 

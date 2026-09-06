@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   Target, 
@@ -26,8 +26,17 @@ export function ProfileView() {
   const [employeeCategory, setEmployeeCategory] = useState<string>('Semua');
   const [employeeSearch, setEmployeeSearch] = useState<string>('');
 
-  const agencySettings = StorageService.getAgencySettings();
-  const employees = StorageService.getEmployees();
+  const [agencySettings, setAgencySettings] = useState(() => StorageService.getAgencySettings());
+  const [employees, setEmployees] = useState(() => StorageService.getEmployees());
+
+  useEffect(() => {
+    const handleSync = () => {
+      setAgencySettings(StorageService.getAgencySettings());
+      setEmployees(StorageService.getEmployees());
+    };
+    window.addEventListener('bapperida:data-synced', handleSync);
+    return () => window.removeEventListener('bapperida:data-synced', handleSync);
+  }, []);
 
   const POSITION_CATEGORIES: EmployeePositionCategory[] = [
     'Kepala Badan',

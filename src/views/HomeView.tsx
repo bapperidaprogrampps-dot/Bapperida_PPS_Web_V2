@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   ShieldCheck, 
@@ -45,7 +45,15 @@ export function HomeView({
   const highlightedDocs = documents.slice(0, 4);
 
   // Dynamic CMS settings from StorageService
-  const settings = StorageService.getAgencySettings();
+  const [settings, setSettings] = useState(() => StorageService.getAgencySettings());
+
+  useEffect(() => {
+    const handleSync = () => {
+      setSettings(StorageService.getAgencySettings());
+    };
+    window.addEventListener('bapperida:data-synced', handleSync);
+    return () => window.removeEventListener('bapperida:data-synced', handleSync);
+  }, []);
 
   return (
     <div className="space-y-16 pb-16 relative overflow-hidden bg-slate-50/30">

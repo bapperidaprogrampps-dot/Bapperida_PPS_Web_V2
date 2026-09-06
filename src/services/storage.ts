@@ -20,6 +20,7 @@ import {
   regionalIndicatorStats,
   initialEmployees
 } from '../data/mockData';
+import { CentralSyncService } from './centralSyncService';
 
 const KEYS = {
   ARTICLES: 'bapperida_pps_articles_v1',
@@ -56,6 +57,7 @@ export const StorageService = {
   saveArticles(articles: NewsArticle[]): void {
     try {
       localStorage.setItem(KEYS.ARTICLES, JSON.stringify(articles));
+      CentralSyncService.syncKeyToServer('articles', articles).catch(() => {});
     } catch {
       // ignore
     }
@@ -106,6 +108,7 @@ export const StorageService = {
   saveDocuments(docs: PlanningDocument[]): void {
     try {
       localStorage.setItem(KEYS.DOCUMENTS, JSON.stringify(docs));
+      CentralSyncService.syncKeyToServer('documents', docs).catch(() => {});
     } catch {
       // ignore
     }
@@ -161,6 +164,7 @@ export const StorageService = {
   saveComplaints(complaints: Complaint[]): void {
     try {
       localStorage.setItem(KEYS.COMPLAINTS, JSON.stringify(complaints));
+      CentralSyncService.syncKeyToServer('complaints', complaints).catch(() => {});
     } catch {
       // ignore
     }
@@ -221,6 +225,7 @@ export const StorageService = {
   saveAgendas(agendas: AgendaEvent[]): void {
     try {
       localStorage.setItem(KEYS.AGENDAS, JSON.stringify(agendas));
+      CentralSyncService.syncKeyToServer('agendas', agendas).catch(() => {});
     } catch {
       // ignore
     }
@@ -266,6 +271,7 @@ export const StorageService = {
   saveGallery(items: GalleryItem[]): void {
     try {
       localStorage.setItem(KEYS.GALLERY, JSON.stringify(items));
+      CentralSyncService.syncKeyToServer('gallery', items).catch(() => {});
     } catch {
       // ignore
     }
@@ -306,6 +312,7 @@ export const StorageService = {
   saveInfoRequests(reqs: InformationRequest[]): void {
     try {
       localStorage.setItem(KEYS.INFO_REQUESTS, JSON.stringify(reqs));
+      CentralSyncService.syncKeyToServer('info_requests', reqs).catch(() => {});
     } catch {
       // ignore
     }
@@ -356,6 +363,7 @@ export const StorageService = {
   saveAgencySettings(settings: AgencySettings): void {
     try {
       localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings));
+      CentralSyncService.syncKeyToServer('settings', settings).catch(() => {});
     } catch {
       // ignore
     }
@@ -375,6 +383,7 @@ export const StorageService = {
   saveIndicatorStats(stats: IndicatorStat[]): void {
     try {
       localStorage.setItem(KEYS.INDICATORS, JSON.stringify(stats));
+      CentralSyncService.syncKeyToServer('indicators', stats).catch(() => {});
     } catch {
       // ignore
     }
@@ -586,6 +595,7 @@ export const StorageService = {
   saveEmployees(employees: EmployeeProfile[]): void {
     try {
       localStorage.setItem(KEYS.EMPLOYEES, JSON.stringify(employees));
+      CentralSyncService.syncKeyToServer('employees', employees).catch(() => {});
     } catch {
       // ignore
     }

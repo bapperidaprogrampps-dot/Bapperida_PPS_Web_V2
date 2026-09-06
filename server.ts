@@ -9,16 +9,21 @@ const PORT = 3000;
 
 // Base uploads directory on server (suitable for Hostinger VPS / Cloud or Node container)
 const UPLOADS_BASE_DIR = path.join(process.cwd(), 'uploads');
+const DATA_BASE_DIR = path.join(UPLOADS_BASE_DIR, 'data');
 const CATEGORIES = ['documents', 'images', 'videos', 'general'] as const;
 type UploadCategory = typeof CATEGORIES[number];
 
-// Ensure upload directories exist
+// Ensure upload and data directories exist
 CATEGORIES.forEach((cat) => {
   const dir = path.join(UPLOADS_BASE_DIR, cat);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 });
+
+if (!fs.existsSync(DATA_BASE_DIR)) {
+  fs.mkdirSync(DATA_BASE_DIR, { recursive: true });
+}
 
 // Configure Multer Storage for Hostinger Server Storage
 const storage = multer.diskStorage({
@@ -188,6 +193,121 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
     return res.status(500).json({
       success: false,
       error: error.message || 'Gagal mengunggah file ke server'
+    });
+  }
+});
+
+// 4. Centralized Data APIs for Multi-Browser / Shared Persistence
+// GET all data keys at once (used on initial app load in any browser)
+app.get('/api/sync/all', (req, res) => {
+  try {
+    const result: Record<string, any> = {};
+    if (fs.existsSync(DATA_BASE_DIR)) {
+      const files = fs.readdirSync(DATA_BASE_DIR);
+      files.forEach((file) => {
+        if (file.endsWith('.json')) {
+          const key = path.basename(file, '.json');
+          try {
+            const content = fs.readFileSync(path.join(DATA_BASE_DIR, file), 'utf-8');
+            result[key] = JSON.parse(content);
+          } catch {
+            // ignore malformed JSON file
+          }
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result,
+      count: Object.keys(result).length,
+      syncedAt: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal membaca data dari server'
+    });
+  }
+});
+
+// POST all data keys (used when Admin syncs/restores everything)
+app.post('/api/sync/all', (req, res) => {
+  try {
+    const payload = req.body?.data || req.body;
+    if (!payload || typeof payload !== 'object') {
+      return res.status(400).json({ success: false, error: 'Data payload tidak valid' });
+    }
+
+    let savedCount = 0;
+    Object.keys(payload).forEach((key) => {
+      const cleanKey = key.replace(/[^a-zA-Z0-9_-]/g, '');
+      if (cleanKey) {
+        const filePath = path.join(DATA_BASE_DIR, `${cleanKey}.json`);
+        fs.writeFileSync(filePath, JSON.stringify(payload[key], null, 2), 'utf-8');
+        savedCount++;
+      }
+    });
+
+    res.json({
+      success: true,
+      message: `${savedCount} modul data berhasil disimpan ke server Hostinger`,
+      savedCount,
+      savedAt: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal menyimpan data ke server'
+    });
+  }
+});
+
+// GET single data key (e.g. /api/data/settings, /api/data/articles)
+app.get('/api/data/:key', (req, res) => {
+  try {
+    const cleanKey = req.params.key.replace(/[^a-zA-Z0-9_-]/g, '');
+    const filePath = path.join(DATA_BASE_DIR, `${cleanKey}.json`);
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      return res.json({
+        success: true,
+        key: cleanKey,
+        data: JSON.parse(content)
+      });
+    }
+    return res.status(404).json({
+      success: false,
+      key: cleanKey,
+      error: 'Data belum tersimpan di server'
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal membaca data modul'
+    });
+  }
+});
+
+// POST single data key
+app.post('/api/data/:key', (req, res) => {
+  try {
+    const cleanKey = req.params.key.replace(/[^a-zA-Z0-9_-]/g, '');
+    const filePath = path.join(DATA_BASE_DIR, `${cleanKey}.json`);
+    const payload = req.body;
+    const dataToSave = payload && payload.data !== undefined ? payload.data : payload;
+
+    fs.writeFileSync(filePath, JSON.stringify(dataToSave, null, 2), 'utf-8');
+    return res.json({
+      success: true,
+      key: cleanKey,
+      message: `Data ${cleanKey} berhasil disimpan terpusat di server Hostinger`,
+      savedAt: new Date().toISOString()
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal menyimpan data modul ke server'
     });
   }
 });

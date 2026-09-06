@@ -21,6 +21,7 @@ import { AdminLoginView } from './views/AdminLoginView';
 
 // Services & Types
 import { StorageService } from './services/storage';
+import { CentralSyncService } from './services/centralSyncService';
 import { ScrollProgressBar, ScrollToTopButton } from './components/ScrollAnimations';
 import { 
   ActivePage, 
@@ -62,6 +63,16 @@ export default function App() {
 
   useEffect(() => {
     loadData();
+    CentralSyncService.init();
+
+    const handleSyncUpdate = () => {
+      loadData();
+    };
+
+    window.addEventListener('bapperida:data-synced', handleSyncUpdate);
+    return () => {
+      window.removeEventListener('bapperida:data-synced', handleSyncUpdate);
+    };
   }, [loadData]);
 
   // Scroll to top on page switch
