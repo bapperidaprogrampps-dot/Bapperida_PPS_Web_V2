@@ -177,3 +177,18 @@ export interface AdminCredentials {
   role: string;
   lastPasswordChangedAt?: string;
 }
+
+export type EmployeePositionCategory = 'Kepala Badan' | 'Sekretaris' | 'Kasubag' | 'Kasubid' | 'Staff';
+
+export interface EmployeeProfile {
+  id: string;
+  name: string;
+  nip?: string;
+  positionCategory: EmployeePositionCategory;
+  positionTitle: string;
+  rank?: string;
+  department?: string;
+  photoUrl?: string;
+  motto?: string;
+  order?: number;
+}

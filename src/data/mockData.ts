@@ -1,4 +1,4 @@
-import { NewsArticle, PlanningDocument, Complaint, AgendaEvent, GalleryItem, IndicatorStat, RegencyStat } from '../types';
+import { NewsArticle, PlanningDocument, Complaint, AgendaEvent, GalleryItem, IndicatorStat, RegencyStat, EmployeeProfile } from '../types';
 
 export const initialArticles: NewsArticle[] = [
   {
@@ -440,3 +440,126 @@ export const defaultAgencySettings: import('../types').AgencySettings = {
   sipdUrl: 'https://sipd-ri.kemendagri.go.id',
   satuDataUrl: 'https://satudata.papuaselatanprov.go.id'
 };
+
+export const initialEmployees: EmployeeProfile[] = [
+  {
+    id: 'emp-1',
+    name: 'Ulmi Listianingsih, S.Sos., M.M.',
+    nip: '19740512 199903 2 004',
+    positionCategory: 'Kepala Badan',
+    positionTitle: 'Kepala Bapperida Provinsi Papua Selatan',
+    rank: 'Pembina Utama Madya (IV/d)',
+    department: 'Pimpinan Badan',
+    photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80',
+    motto: 'Perencanaan yang presisi dan riset yang terarah adalah kunci kemandirian serta kesejahteraan masyarakat di Tanah Anim Ha.',
+    order: 1
+  },
+  {
+    id: 'emp-2',
+    name: 'Drs. Agustinus Kaize, M.Si.',
+    nip: '19780815 200212 1 008',
+    positionCategory: 'Sekretaris',
+    positionTitle: 'Sekretaris Bapperida Provinsi Papua Selatan',
+    rank: 'Pembina Tingkat I (IV/b)',
+    department: 'Sekretariat',
+    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+    motto: 'Mengawal kelancaran administrasi keuangan, kepegawaian, dan tata kelola internal yang bersih melayani.',
+    order: 2
+  },
+  {
+    id: 'emp-3',
+    name: 'Theresia Mahuze, S.STP., M.Tr.IP.',
+    nip: '19850321 200701 2 005',
+    positionCategory: 'Kasubag',
+    positionTitle: 'Kasubag Umum & Kepegawaian',
+    rank: 'Penata Tingkat I (III/d)',
+    department: 'Sekretariat',
+    photoUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80',
+    motto: 'Disiplin aparatur dan kenyamanan ruang kerja merupakan kunci produktivitas perencanaan.',
+    order: 3
+  },
+  {
+    id: 'emp-4',
+    name: 'Yohanes Gebze, S.E., M.M.',
+    nip: '19861109 201001 1 012',
+    positionCategory: 'Kasubag',
+    positionTitle: 'Kasubag Keuangan & Program',
+    rank: 'Penata (III/c)',
+    department: 'Sekretariat',
+    photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
+    motto: 'Transparansi akuntabilitas anggaran demi setiap rupiah bermanfaat bagi masyarakat Anim Ha.',
+    order: 4
+  },
+  {
+    id: 'emp-5',
+    name: 'Dr. Hendrikus Ndiken, S.T., M.P.W.K.',
+    nip: '19820714 200604 1 009',
+    positionCategory: 'Kasubid',
+    positionTitle: 'Kasubid Perencanaan & Pendanaan Wilayah',
+    rank: 'Penata Tingkat I (III/d)',
+    department: 'Bidang Perencanaan, Pengendalian & Evaluasi (PPE)',
+    photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=800&q=80',
+    motto: 'Menghubungkan pusat-pusat pertumbuhan empat kabupaten lewat data spasial presisi.',
+    order: 5
+  },
+  {
+    id: 'emp-6',
+    name: 'Maria K. Basik-Basik, S.Si., M.Sc.',
+    nip: '19880418 201102 2 003',
+    positionCategory: 'Kasubid',
+    positionTitle: 'Kasubid Riset, Inovasi & Hilirisasi Daerah',
+    rank: 'Penata (III/c)',
+    department: 'Bidang Riset & Inovasi Daerah (BRIDA)',
+    photoUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=800&q=80',
+    motto: 'Kearifan lokal Anim Ha dan sains modern bersinergi untuk kemandirian pangan.',
+    order: 6
+  },
+  {
+    id: 'emp-7',
+    name: 'Ir. Fransiskus Xaverius Yolmen, S.T.',
+    nip: '19840905 200902 1 004',
+    positionCategory: 'Kasubid',
+    positionTitle: 'Kasubid Infrastruktur & Kewilayahan',
+    rank: 'Penata Tingkat I (III/d)',
+    department: 'Bidang Infrastruktur & Kewilayahan',
+    photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80',
+    motto: 'Infrastruktur konektivitas meretas isolasi pedalaman Papua Selatan.',
+    order: 7
+  },
+  {
+    id: 'emp-8',
+    name: 'Petrus Anim Gebze, S.Kom.',
+    nip: '19940212 201903 1 007',
+    positionCategory: 'Staff',
+    positionTitle: 'Pranata Komputer & Pengelola Satu Data',
+    rank: 'Penata Muda (III/a)',
+    department: 'Bidang Perencanaan, Pengendalian & Evaluasi (PPE)',
+    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
+    motto: 'Digitalisasi Satu Data Bapperida untuk kemudahan akses seluruh publik.',
+    order: 8
+  },
+  {
+    id: 'emp-9',
+    name: 'Bernadeta Wambon, S.Sos.',
+    nip: '19960725 202102 2 010',
+    positionCategory: 'Staff',
+    positionTitle: 'Analis Kebijakan & Kerjasama Riset Daerah',
+    rank: 'Penata Muda (III/a)',
+    department: 'Bidang Riset & Inovasi Daerah (BRIDA)',
+    photoUrl: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=800&q=80',
+    motto: 'Melayani dengan integritas dan dedikasi demi kemajuan Tanah Anim Ha tercinta.',
+    order: 9
+  },
+  {
+    id: 'emp-10',
+    name: 'Michael Maturbongs, A.Md.',
+    nip: '19971004 202204 1 003',
+    positionCategory: 'Staff',
+    positionTitle: 'Pengelola Sistem Informasi Geospasial (GIS)',
+    rank: 'Pengatur (II/c)',
+    department: 'Bidang Infrastruktur & Kewilayahan',
+    photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
+    motto: 'Peta geospasial yang akurat memandu langkah pembangunan berkelanjutan.',
+    order: 10
+  }
+];

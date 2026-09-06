@@ -14,7 +14,8 @@ import {
   ShieldAlert, 
   Info,
   Check,
-  X
+  X,
+  Shield
 } from 'lucide-react';
 import { StorageService } from '../../services/storage';
 
@@ -25,6 +26,7 @@ interface AdminSecurityTabProps {
 
 export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabProps) {
   const [currentCredentials, setCurrentCredentials] = useState(StorageService.getAdminCredentials());
+  const [isCredsDisabled, setIsCredsDisabled] = useState(() => StorageService.isDefaultCredentialsDisabled());
 
   // Form states
   const [oldPassword, setOldPassword] = useState('');
@@ -125,6 +127,18 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
+    if (onDataChanged) onDataChanged();
+  };
+
+  const handleToggleDefaultCreds = () => {
+    const nextVal = !isCredsDisabled;
+    StorageService.setDefaultCredentialsDisabled(nextVal);
+    setIsCredsDisabled(nextVal);
+    showToast(
+      nextVal
+        ? 'Kredensial default pada menu login administrator berhasil dinonaktifkan.'
+        : 'Kredensial default pada menu login administrator diaktifkan kembali.'
+    );
     if (onDataChanged) onDataChanged();
   };
 
@@ -409,6 +423,61 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
                     : 'Bawaan Sistem'}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Pengaturan Kredensial Default Login Administrator */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-amber-500" />
+                <h3 className="text-sm font-extrabold text-slate-900">
+                  Keamanan Menu Login Admin
+                </h3>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                isCredsDisabled 
+                  ? 'bg-rose-100 text-rose-800 border border-rose-200' 
+                  : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+              }`}>
+                {isCredsDisabled ? 'Kredensial Dinonaktifkan' : 'Kredensial Aktif'}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Kendalikan visibilitas bantuan kredensial default administrator (kotak email, petunjuk password, dan tombol <em>&ldquo;Isi Otomatis&rdquo;</em>) pada menu login publik.
+            </p>
+
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
+              <div className="space-y-0.5 flex-1 pr-2">
+                <span className="text-xs font-bold text-slate-900 block">
+                  Nonaktifkan Kredensial Default di Login
+                </span>
+                <span className="text-[11px] text-slate-500 block leading-snug">
+                  {isCredsDisabled 
+                    ? 'Kredensial default disembunyikan. Pengunjung tidak dapat melihat kredensial atau melakukan isi otomatis.' 
+                    : 'Kredensial default masih terlihat di menu login administrator untuk kemudahan pengujian.'}
+                </span>
+              </div>
+
+              {/* Interactive Toggle Switch */}
+              <button
+                type="button"
+                onClick={handleToggleDefaultCreds}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                  isCredsDisabled ? 'bg-rose-600' : 'bg-slate-300'
+                }`}
+                role="switch"
+                aria-checked={isCredsDisabled}
+                title={isCredsDisabled ? 'Klik untuk mengaktifkan kembali' : 'Klik untuk menonaktifkan kredensial'}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                    isCredsDisabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
           </div>
 

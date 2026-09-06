@@ -7,7 +7,8 @@ import {
   InformationRequest,
   AgencySettings,
   IndicatorStat,
-  AdminCredentials
+  AdminCredentials,
+  EmployeeProfile
 } from '../types';
 import { 
   initialArticles, 
@@ -16,7 +17,8 @@ import {
   initialAgendas, 
   initialGallery,
   defaultAgencySettings,
-  regionalIndicatorStats
+  regionalIndicatorStats,
+  initialEmployees
 } from '../data/mockData';
 
 const KEYS = {
@@ -31,6 +33,8 @@ const KEYS = {
   ADMIN_SESSION_USER: 'bapperida_pps_admin_session_user_v1',
   SETTINGS: 'bapperida_pps_settings_v1',
   INDICATORS: 'bapperida_pps_indicators_v1',
+  EMPLOYEES: 'bapperida_pps_employees_v1',
+  ADMIN_DISABLE_DEFAULT_CREDS: 'bapperida_pps_admin_disable_default_creds_v1',
 };
 
 export const StorageService = {
@@ -523,6 +527,67 @@ export const StorageService = {
 
   logout(): void {
     this.setAdminLoggedIn(false);
+  },
+
+  // Toggle Default Credentials on Admin Login Screen
+  isDefaultCredentialsDisabled(): boolean {
+    try {
+      return localStorage.getItem(KEYS.ADMIN_DISABLE_DEFAULT_CREDS) === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  setDefaultCredentialsDisabled(disabled: boolean): void {
+    try {
+      if (disabled) {
+        localStorage.setItem(KEYS.ADMIN_DISABLE_DEFAULT_CREDS, 'true');
+      } else {
+        localStorage.removeItem(KEYS.ADMIN_DISABLE_DEFAULT_CREDS);
+      }
+    } catch {
+      // ignore
+    }
+  },
+
+  // Employees (Profil Pegawai)
+  getEmployees(): EmployeeProfile[] {
+    try {
+      const data = localStorage.getItem(KEYS.EMPLOYEES);
+      if (data) return JSON.parse(data);
+    } catch {
+      // ignore
+    }
+    return initialEmployees;
+  },
+
+  saveEmployees(employees: EmployeeProfile[]): void {
+    try {
+      localStorage.setItem(KEYS.EMPLOYEES, JSON.stringify(employees));
+    } catch {
+      // ignore
+    }
+  },
+
+  addEmployee(emp: Omit<EmployeeProfile, 'id'>): EmployeeProfile {
+    const list = this.getEmployees();
+    const newEmp: EmployeeProfile = {
+      ...emp,
+      id: `emp-${Date.now()}`
+    };
+    list.push(newEmp);
+    this.saveEmployees(list);
+    return newEmp;
+  },
+
+  updateEmployee(updated: EmployeeProfile): void {
+    const list = this.getEmployees().map(e => e.id === updated.id ? updated : e);
+    this.saveEmployees(list);
+  },
+
+  deleteEmployee(id: string): void {
+    const list = this.getEmployees().filter(e => e.id !== id);
+    this.saveEmployees(list);
   },
 
   // Reset all local storage to default initial data

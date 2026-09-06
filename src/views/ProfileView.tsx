@@ -10,16 +10,80 @@ import {
   ShieldAlert,
   Compass,
   Lightbulb,
-  Briefcase
+  Briefcase,
+  Search,
+  Filter,
+  Sparkles
 } from 'lucide-react';
-import { PapuaSelatanLogo, BapperidaLogo } from '../components/Logos';
 import { StorageService } from '../services/storage';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../components/ScrollAnimations';
 import { PageHeaderBanner } from '../components/PageHeaderBanner';
+import { EmployeePositionCategory, EmployeeProfile } from '../types';
+import { EmployeeZigzagRow } from '../components/EmployeeZigzagRow';
 
 export function ProfileView() {
-  const [activeTab, setActiveTab] = useState<'visi-misi' | 'sejarah' | 'tupoksi' | 'struktur' | 'pimpinan'>('visi-misi');
+  const [activeTab, setActiveTab] = useState<'visi-misi' | 'sejarah' | 'tupoksi' | 'struktur' | 'pegawai' | 'pimpinan'>('visi-misi');
+  const [employeeCategory, setEmployeeCategory] = useState<string>('Semua');
+  const [employeeSearch, setEmployeeSearch] = useState<string>('');
+
   const agencySettings = StorageService.getAgencySettings();
+  const employees = StorageService.getEmployees();
+
+  const POSITION_CATEGORIES: EmployeePositionCategory[] = [
+    'Kepala Badan',
+    'Sekretaris',
+    'Kasubag',
+    'Kasubid',
+    'Staff'
+  ];
+
+  const HIERARCHY_SECTIONS: {
+    category: EmployeePositionCategory;
+    title: string;
+    gridCols: string;
+    isLeader?: boolean;
+  }[] = [
+    {
+      category: 'Kepala Badan',
+      title: 'Kepala Badan',
+      gridCols: 'grid-cols-1 max-w-sm mx-auto',
+      isLeader: true
+    },
+    {
+      category: 'Sekretaris',
+      title: 'Sekretaris Badan',
+      gridCols: 'grid-cols-1 max-w-sm mx-auto',
+      isLeader: false
+    },
+    {
+      category: 'Kasubag',
+      title: 'Kepala Sub Bagian (Kasubag)',
+      gridCols: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto',
+      isLeader: false
+    },
+    {
+      category: 'Kasubid',
+      title: 'Kepala Sub Bidang (Kasubid)',
+      gridCols: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto',
+      isLeader: false
+    },
+    {
+      category: 'Staff',
+      title: 'Staff / Aparatur Pelaksana',
+      gridCols: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+      isLeader: false
+    }
+  ];
+
+  const filteredEmployees = employees.filter(emp => {
+    const matchCat = employeeCategory === 'Semua' || emp.positionCategory === employeeCategory;
+    const matchSearch = !employeeSearch || 
+      emp.name.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+      (emp.nip && emp.nip.toLowerCase().includes(employeeSearch.toLowerCase())) ||
+      emp.positionTitle.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+      (emp.department && emp.department.toLowerCase().includes(employeeSearch.toLowerCase()));
+    return matchCat && matchSearch;
+  }).sort((a, b) => (a.order || 999) - (b.order || 999));
 
   return (
     <div className="w-full pb-16 space-y-8">
@@ -36,7 +100,7 @@ export function ProfileView() {
             { id: 'sejarah', label: 'Sejarah & Dasar Hukum' },
             { id: 'tupoksi', label: 'Tugas Pokok & Fungsi' },
             { id: 'struktur', label: 'Struktur Organisasi' },
-            { id: 'pimpinan', label: 'Profil Pimpinan' },
+            { id: 'pegawai', label: 'Profil Pegawai' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -354,94 +418,146 @@ export function ProfileView() {
         </ScrollReveal>
       )}
 
-      {/* Tab 5: Profil Pimpinan */}
-      {activeTab === 'pimpinan' && (
+      {/* Tab 5: Profil Pegawai */}
+      {(activeTab === 'pegawai' || activeTab === 'pimpinan') && (
         <ScrollReveal variant="fade-up" duration={0.65}>
-          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6">
-            <div>
-              <h3 className="text-xl font-bold text-[#0f3d5c]">
-                Pejabat Struktural Bapperida Provinsi Papua Selatan
-              </h3>
-              <p className="text-xs text-slate-600 mt-1">
-                Jajaran kepemimpinan Badan Perencanaan Pembangunan Daerah, Riset dan Inovasi Daerah
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#092237] via-[#0d2e48] to-[#071926] text-white p-6 sm:p-10 lg:p-12 border border-slate-700/50 shadow-2xl space-y-10">
+            {/* Background pattern decoration */}
+            <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+            {/* Main Headline Badge (Persis Poster EBS: | 과목별 강사 안내 |) */}
+            <div className="relative z-10 text-center space-y-3 pt-2">
+              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <span className="text-amber-400 font-mono text-base sm:text-xl font-black tracking-widest">
+                  | DAFTAR PEGAWAI BERDASARKAN JABATAN |
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto font-medium">
+                Struktur hierarki aparatur sipil negara Bapperida Provinsi Papua Selatan dari Kepala Badan hingga Pegawai Pelaksana.
               </p>
+
+              {/* Search Bar with Glassmorphism */}
+              <div className="relative w-full max-w-md mx-auto pt-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={employeeSearch}
+                  onChange={(e) => setEmployeeSearch(e.target.value)}
+                  placeholder="Cari nama, NIP, jabatan..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/20 rounded-2xl text-xs text-white placeholder:text-slate-400 focus:outline-hidden focus:border-amber-400 transition"
+                />
+              </div>
             </div>
 
-            <StaggerContainer staggerDelay={0.1} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StaggerItem variant="zoom-in">
-                <div className="p-5 rounded-xl border border-slate-200 bg-slate-50 text-center space-y-3 h-full">
-                  <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-amber-400">
-                    <img
-                      src={agencySettings.leaderPhoto}
-                      alt={`Foto ${agencySettings.leaderName}`}
-                      className="w-full h-full object-cover object-top"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">
-                      Kepala Badan
-                    </span>
-                    <h4 className="font-bold text-slate-900 text-sm mt-0.5">
-                      {agencySettings.leaderName}
-                    </h4>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {agencySettings.leaderRank}
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      {agencySettings.leaderTitle}
-                    </p>
-                  </div>
-                  <p className="text-[11px] text-slate-600 italic">
-                    &ldquo;{agencySettings.leaderMotto}&rdquo;
-                  </p>
-                </div>
-              </StaggerItem>
+            {/* Category Filter Tabs */}
+            <div className="relative z-10 flex items-center justify-center gap-2 overflow-x-auto pb-2 text-xs">
+              <button
+                type="button"
+                onClick={() => setEmployeeCategory('Semua')}
+                className={`px-4 py-2 rounded-xl font-black text-xs transition cursor-pointer whitespace-nowrap shadow-xs ${
+                  employeeCategory === 'Semua'
+                    ? 'bg-amber-400 text-slate-950 shadow-amber-400/25'
+                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
+                }`}
+              >
+                Semua ({employees.length})
+              </button>
+              {POSITION_CATEGORIES.map(cat => {
+                const count = employees.filter(e => e.positionCategory === cat).length;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setEmployeeCategory(cat)}
+                    className={`px-4 py-2 rounded-xl font-bold text-xs transition cursor-pointer whitespace-nowrap ${
+                      employeeCategory === cat
+                        ? 'bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/25'
+                        : 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
+                    }`}
+                  >
+                    {cat} ({count})
+                  </button>
+                );
+              })}
+            </div>
 
-              <StaggerItem variant="zoom-in">
-                <div className="p-5 rounded-xl border border-slate-200 bg-slate-50 text-center space-y-3 h-full">
-                  <div className="w-24 h-24 mx-auto rounded-full bg-slate-700 text-white flex items-center justify-center font-bold text-2xl border-4 border-slate-300">
-                    SB
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest block">
-                      Sekretaris Badan
-                    </span>
-                    <h4 className="font-bold text-slate-900 text-sm mt-0.5">
-                      Sekretaris Bapperida PPS
-                    </h4>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Pembina Tingkat I (IV/b)
-                    </p>
-                  </div>
-                  <p className="text-[11px] text-slate-600 italic">
-                    &ldquo;Mengawal kelancaran administrasi keuangan, kepegawaian, dan tata kelola internal yang bersih melayani.&rdquo;
-                  </p>
-                </div>
-              </StaggerItem>
+            {/* Alternating Zig-Zag Rows by Hierarchy */}
+            <div className="relative z-10 space-y-12">
+              {(() => {
+                let globalCounter = 0;
 
-              <StaggerItem variant="zoom-in">
-                <div className="p-5 rounded-xl border border-slate-200 bg-slate-50 text-center space-y-3 h-full">
-                  <div className="w-24 h-24 mx-auto rounded-full bg-purple-800 text-white flex items-center justify-center font-bold text-2xl border-4 border-purple-300">
-                    RI
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-purple-600 uppercase tracking-widest block">
-                      Kepala Bidang Riset & Inovasi
-                    </span>
-                    <h4 className="font-bold text-slate-900 text-sm mt-0.5">
-                      Kabid Riset & Inovasi (BRIDA)
-                    </h4>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Pembina (IV/a)
-                    </p>
-                  </div>
-                  <p className="text-[11px] text-slate-600 italic">
-                    &ldquo;Mengakselerasi hilirisasi komoditas unggulan sagu, pangan lokal, dan inovasi pelayanan publik.&rdquo;
-                  </p>
-                </div>
-              </StaggerItem>
-            </StaggerContainer>
+                return HIERARCHY_SECTIONS.map(section => {
+                  if (employeeCategory !== 'Semua' && employeeCategory !== section.category) {
+                    return null;
+                  }
+
+                  const sectionEmployees = filteredEmployees.filter(
+                    emp => emp.positionCategory === section.category
+                  );
+
+                  if (sectionEmployees.length === 0 && employeeSearch) {
+                    return null;
+                  }
+
+                  return (
+                    <div key={section.category} className="space-y-4">
+                      {/* Section Title Divider (Gaya EBS | KEPALA BADAN |) */}
+                      <div className="flex items-center justify-center gap-4 py-2">
+                        <div className="h-px bg-gradient-to-r from-transparent via-white/25 to-white/25 flex-1 max-w-[120px] sm:max-w-xs"></div>
+                        <span className="text-amber-300 font-mono text-xs sm:text-sm tracking-widest uppercase font-black px-4 py-1.5 rounded-full bg-white/10 border border-amber-300/30 shadow-xs">
+                          | {section.title.toUpperCase()} |
+                        </span>
+                        <div className="h-px bg-gradient-to-l from-transparent via-white/25 to-white/25 flex-1 max-w-[120px] sm:max-w-xs"></div>
+                      </div>
+
+                      {/* Alternating Zig-Zag Items */}
+                      {sectionEmployees.length > 0 ? (
+                        <div className="space-y-4">
+                          {sectionEmployees.map(emp => {
+                            const rowIndex = globalCounter++;
+                            return (
+                              <EmployeeZigzagRow
+                                key={emp.id}
+                                employee={emp}
+                                index={rowIndex}
+                                isLeader={section.isLeader}
+                              />
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="p-8 text-center bg-white/5 rounded-2xl border border-dashed border-white/15">
+                          <p className="text-xs text-slate-400">
+                            Belum ada pegawai terdaftar pada klasifikasi {section.title}.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+
+            {/* Empty State */}
+            {filteredEmployees.length === 0 && (
+              <div className="relative z-10 p-12 text-center bg-white/5 rounded-3xl border border-white/15 space-y-4">
+                <Users className="w-12 h-12 text-slate-400 mx-auto" />
+                <h4 className="text-base font-bold text-white">Tidak ada pegawai ditemukan</h4>
+                <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                  Tidak ada data pegawai yang sesuai dengan kata kunci &ldquo;{employeeSearch}&rdquo;. Silakan periksa kembali ejaan pencarian.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmployeeSearch('');
+                    setEmployeeCategory('Semua');
+                  }}
+                  className="px-5 py-2.5 bg-amber-400 text-slate-950 text-xs font-black rounded-xl hover:bg-amber-300 transition shadow-lg shadow-amber-400/20"
+                >
+                  Reset Pencarian & Filter
+                </button>
+              </div>
+            )}
           </div>
         </ScrollReveal>
       )}

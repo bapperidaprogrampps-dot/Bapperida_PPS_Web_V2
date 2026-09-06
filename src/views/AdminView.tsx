@@ -21,7 +21,8 @@ import {
   ExternalLink,
   KeyRound,
   ShieldCheck,
-  X
+  X,
+  Users
 } from 'lucide-react';
 import { 
   PlanningDocument, 
@@ -29,7 +30,8 @@ import {
   Complaint, 
   AgendaEvent, 
   GalleryItem, 
-  InformationRequest 
+  InformationRequest,
+  EmployeeProfile
 } from '../types';
 import { StorageService } from '../services/storage';
 
@@ -42,6 +44,7 @@ import { AdminGalleryTab } from '../components/admin/AdminGalleryTab';
 import { AdminComplaintsTab } from '../components/admin/AdminComplaintsTab';
 import { AdminPpidTab } from '../components/admin/AdminPpidTab';
 import { AdminLeaderSpeechTab } from '../components/admin/AdminLeaderSpeechTab';
+import { AdminEmployeesTab } from '../components/admin/AdminEmployeesTab';
 import { AdminIndicatorsTab } from '../components/admin/AdminIndicatorsTab';
 import { AdminSettingsTab } from '../components/admin/AdminSettingsTab';
 import { AdminHeroVideoTab } from '../components/admin/AdminHeroVideoTab';
@@ -56,6 +59,7 @@ export type AdminTabId =
   | 'galeri' 
   | 'pengaduan' 
   | 'ppid' 
+  | 'pegawai'
   | 'sambutan' 
   | 'indikator' 
   | 'video-beranda'
@@ -87,13 +91,16 @@ export function AdminView({
 
   // Local state for PPID info requests
   const [infoRequests, setInfoRequests] = useState<InformationRequest[]>([]);
+  // Local state for Employees (Profil Pegawai)
+  const [employees, setEmployees] = useState<EmployeeProfile[]>([]);
 
   // Current admin credentials
   const currentAdmin = StorageService.getCurrentAdminUser();
 
-  // Load PPID requests
+  // Load PPID requests & Employees
   useEffect(() => {
     setInfoRequests(StorageService.getInfoRequests());
+    setEmployees(StorageService.getEmployees());
   }, [complaints, documents]);
 
   const showToast = (message: string) => {
@@ -105,6 +112,7 @@ export function AdminView({
 
   const handleDataChangedWithReload = () => {
     setInfoRequests(StorageService.getInfoRequests());
+    setEmployees(StorageService.getEmployees());
     onDataChanged();
   };
 
@@ -167,6 +175,7 @@ export function AdminView({
     {
       group: 'Konfigurasi Konten & Wilayah',
       items: [
+        { id: 'pegawai', label: 'Profil Pegawai', icon: Users, badge: employees.length },
         { id: 'video-beranda', label: 'Unggah Video Beranda', icon: Film, badge: 'Admin' },
         { id: 'sambutan', label: 'Profil & Sambutan Pimpinan', icon: Award, badge: null },
         { id: 'indikator', label: 'Indikator Makro Pembangunan', icon: TrendingUp, badge: null },
@@ -385,6 +394,14 @@ export function AdminView({
 
           {activeTab === 'sambutan' && (
             <AdminLeaderSpeechTab
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'pegawai' && (
+            <AdminEmployeesTab
+              employees={employees}
               onDataChanged={handleDataChangedWithReload}
               showToast={showToast}
             />
