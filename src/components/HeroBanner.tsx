@@ -47,35 +47,60 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
     if (settings.officeAddress) setOfficeAddress(settings.officeAddress);
     if (settings.officeHours) setOfficeHours(settings.officeHours);
 
-    // Prioritaskan URL berkas di server Hostinger jika ada
-    if (settings.heroVideoServerUrl) {
-      setVideoSrc(settings.heroVideoServerUrl);
+    // 1. Cek apakah ada URL video server Hostinger yang valid (bukan blob session)
+    const hasValidServerUrl = settings.heroVideoServerUrl && 
+      typeof settings.heroVideoServerUrl === 'string' && 
+      !settings.heroVideoServerUrl.startsWith('blob:');
+
+    if (hasValidServerUrl) {
+      setVideoSrc(settings.heroVideoServerUrl!);
       setIsCustomVideo(true);
-    } else {
-      const customBlobUrl = await VideoStorageService.getHeroVideoBlobUrl();
-      if (customBlobUrl) {
-        setVideoSrc(customBlobUrl);
-        setIsCustomVideo(true);
-      } else {
-        setVideoSrc(DEFAULT_REFERENCE_VIDEO);
-        setIsCustomVideo(false);
-      }
+      return;
     }
+
+    // 2. Cek apakah ada file video yang tersimpan di IndexedDB browser lokal
+    const customBlobUrl = await VideoStorageService.getHeroVideoBlobUrl();
+    if (customBlobUrl) {
+      setVideoSrc(customBlobUrl);
+      setIsCustomVideo(true);
+      return;
+    }
+
+    // 3. Fallback ke video referensi bawaan
+    setVideoSrc(DEFAULT_REFERENCE_VIDEO);
+    setIsCustomVideo(false);
   };
 
   useEffect(() => {
     loadHeroData();
 
-    // Listen for updates from the admin module
+    // Listen for updates from the admin module and central sync
     const handleVideoUpdate = () => {
       loadHeroData();
     };
 
     window.addEventListener('hero-video-updated', handleVideoUpdate);
+    window.addEventListener('bapperida:data-synced', handleVideoUpdate);
     return () => {
       window.removeEventListener('hero-video-updated', handleVideoUpdate);
+      window.removeEventListener('bapperida:data-synced', handleVideoUpdate);
     };
   }, []);
+
+  // Pemulihan otomatis jika sumber video bermasalah atau koneksi terputus
+  const handleVideoError = async () => {
+    console.warn('Gagal memuat tayangan video dari:', videoSrc);
+    if (videoSrc !== DEFAULT_REFERENCE_VIDEO) {
+      const localBlob = await VideoStorageService.getHeroVideoBlobUrl();
+      if (localBlob && localBlob !== videoSrc) {
+        setVideoSrc(localBlob);
+        setIsCustomVideo(true);
+        return;
+      }
+      setVideoSrc(DEFAULT_REFERENCE_VIDEO);
+      setIsCustomVideo(false);
+    }
+  };
 
   // Toggle Play / Pause
   const togglePlay = () => {
@@ -128,6 +153,7 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
             loop
             muted
             playsInline
+            onError={handleVideoError}
             className="w-full h-full object-cover object-center filter blur-xs"
           />
           {/* Gradient overlay agar teks tetap sangat kontras */}
@@ -287,6 +313,7 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
                     loop
                     muted={isMuted}
                     playsInline
+                    onError={handleVideoError}
                     className="w-full h-full object-cover group-hover:scale-103 transition duration-700"
                   />
 

@@ -154,7 +154,12 @@ class CentralSyncServiceManager {
             const localKey = LOCAL_STORAGE_MAP[key];
             if (localKey && serverData[key]) {
               try {
-                localStorage.setItem(localKey, JSON.stringify(serverData[key]));
+                let itemData = serverData[key];
+                // Sanitize: Jangan timpa pengaturan dengan blob URL sesi lama yang sudah mati
+                if (key === 'settings' && itemData?.heroVideoServerUrl && typeof itemData.heroVideoServerUrl === 'string' && itemData.heroVideoServerUrl.startsWith('blob:')) {
+                  delete itemData.heroVideoServerUrl;
+                }
+                localStorage.setItem(localKey, JSON.stringify(itemData));
                 count++;
               } catch (e) {
                 console.error(`Gagal menyimpan key ${key} ke local storage:`, e);
@@ -211,12 +216,18 @@ class CentralSyncServiceManager {
    */
   public async syncKeyToServer(key: string, data: any): Promise<boolean> {
     try {
+      let payload = data;
+      if (key === 'settings' && payload?.heroVideoServerUrl && typeof payload.heroVideoServerUrl === 'string' && payload.heroVideoServerUrl.startsWith('blob:')) {
+        payload = { ...payload };
+        delete payload.heroVideoServerUrl;
+      }
+
       await this.fetchWithFallback(
         `/api/data/${key}`,
         `/api-hostinger/data.php?key=${key}`,
         {
           method: 'POST',
-          body: JSON.stringify({ key, data })
+          body: JSON.stringify({ key, data: payload })
         }
       );
 
@@ -251,7 +262,11 @@ class CentralSyncServiceManager {
         try {
           const raw = localStorage.getItem(localKey);
           if (raw) {
-            allData[key] = JSON.parse(raw);
+            let parsed = JSON.parse(raw);
+            if (key === 'settings' && parsed?.heroVideoServerUrl && typeof parsed.heroVideoServerUrl === 'string' && parsed.heroVideoServerUrl.startsWith('blob:')) {
+              delete parsed.heroVideoServerUrl;
+            }
+            allData[key] = parsed;
           }
         } catch {
           // ignore

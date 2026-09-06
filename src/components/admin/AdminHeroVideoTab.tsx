@@ -14,7 +14,10 @@ import {
   Sparkles, 
   Building2, 
   Save, 
-  Trash2 
+  Trash2,
+  Link2,
+  Globe,
+  Server
 } from 'lucide-react';
 import { StorageService } from '../../services/storage';
 import { VideoStorageService, VideoMeta } from '../../services/videoStorage';
@@ -39,9 +42,11 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [dragActive, setDragActive] = useState<boolean>(false);
 
-  // Form inputs for captions
+  // Form inputs for captions and direct URL
   const [videoTitle, setVideoTitle] = useState<string>('');
   const [videoLocation, setVideoLocation] = useState<string>('');
+  const [directVideoUrl, setDirectVideoUrl] = useState<string>('');
+  const [storageDestination, setStorageDestination] = useState<'server' | 'indexeddb' | 'default'>('default');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,6 +54,17 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
   // Load video & metadata on mount
   useEffect(() => {
     loadCurrentVideo();
+
+    const handleSync = () => {
+      loadCurrentVideo();
+    };
+
+    window.addEventListener('bapperida:data-synced', handleSync);
+    window.addEventListener('hero-video-updated', handleSync);
+    return () => {
+      window.removeEventListener('bapperida:data-synced', handleSync);
+      window.removeEventListener('hero-video-updated', handleSync);
+    };
   }, []);
 
   const loadCurrentVideo = async () => {
@@ -56,17 +72,21 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
     setSettings(currentSettings);
     setVideoTitle(currentSettings.heroVideoTitle || 'Pusat Perumusan Kebijakan & Pengendalian Pembangunan Wilayah Anim Ha');
     setVideoLocation(currentSettings.heroVideoLocation || 'Salor, Merauke — 4 Kabupaten (Merauke, Boven Digoel, Mappi, Asmat)');
+    setDirectVideoUrl(currentSettings.heroVideoServerUrl || '');
 
-    if (currentSettings.heroVideoServerUrl) {
+    // 1. Cek jika ada URL video server Hostinger permanen (bukan blob session)
+    if (currentSettings.heroVideoServerUrl && !currentSettings.heroVideoServerUrl.startsWith('blob:')) {
       setVideoSrc(currentSettings.heroVideoServerUrl);
       setVideoMeta({
-        name: currentSettings.heroVideoCustomName || 'video-profil-hostinger.mp4',
-        sizeFormatted: 'Server Hostinger',
+        name: currentSettings.heroVideoCustomName || 'video-profil-server.mp4',
+        sizeFormatted: 'Server Hostinger / URL Publik',
         type: 'video/mp4',
-        updatedAt: 'Tersimpan di Server'
+        updatedAt: 'Tersimpan Terpusat di Server'
       });
       setIsCustom(true);
+      setStorageDestination('server');
     } else {
+      // 2. Cek apakah ada di IndexedDB browser lokal
       const customUrl = await VideoStorageService.getHeroVideoBlobUrl();
       const meta = await VideoStorageService.getHeroVideoMeta();
 
@@ -74,10 +94,12 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
         setVideoSrc(customUrl);
         setVideoMeta(meta);
         setIsCustom(true);
+        setStorageDestination('indexeddb');
       } else {
         setVideoSrc(DEFAULT_REFERENCE_VIDEO);
         setVideoMeta(null);
         setIsCustom(false);
+        setStorageDestination('default');
       }
     }
   };
@@ -93,32 +115,52 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
     try {
       setIsUploading(true);
 
-      // 1. Unggah berkas ke server Hostinger
-      const uploadRes = await UploadService.uploadFileToServer(file, 'videos');
-
-      // 2. Simpan juga salinan di IndexedDB untuk cache lokal cepat
+      // 1. Simpan salinan di IndexedDB untuk cache lokal instan
       await VideoStorageService.saveHeroVideo(file);
+      const localBlobUrl = await VideoStorageService.getHeroVideoBlobUrl();
 
-      setVideoSrc(uploadRes.url);
+      // 2. Unggah berkas ke server Hostinger
+      let isSavedToServer = false;
+      let persistentUrl: string | undefined = undefined;
+
+      try {
+        const uploadRes = await UploadService.uploadFileToServer(file, 'videos');
+        if (uploadRes && uploadRes.url && !uploadRes.url.startsWith('blob:')) {
+          persistentUrl = uploadRes.url;
+          isSavedToServer = true;
+        }
+      } catch (uploadErr) {
+        console.warn('Gagal unggah langsung ke server Hostinger, menggunakan penyimpanan IndexedDB lokal:', uploadErr);
+      }
+
+      // 3. Tentukan URL tayang
+      const activeDisplayUrl = persistentUrl || localBlobUrl || DEFAULT_REFERENCE_VIDEO;
+      setVideoSrc(activeDisplayUrl);
       setVideoMeta({
-        name: uploadRes.filename || file.name,
-        sizeFormatted: uploadRes.sizeFormatted,
-        type: uploadRes.mimetype || file.type,
-        updatedAt: 'Tersimpan di Server Hostinger'
+        name: file.name,
+        sizeFormatted: UploadService.formatBytes(file.size),
+        type: file.type || 'video/mp4',
+        updatedAt: isSavedToServer ? 'Tersimpan di Server Hostinger' : 'Tersimpan di Memori Browser (IndexedDB)'
       });
       setIsCustom(true);
       setIsPlaying(true);
+      setStorageDestination(isSavedToServer ? 'server' : 'indexeddb');
 
-      // 3. Simpan URL permanen di server Hostinger ke pengaturan instansi
+      // 4. Simpan ke AgencySettings (Hanya simpan serverUrl jika merupakan URL permanen, JANGAN SIMPAN blob:)
       const updated = {
         ...settings,
-        heroVideoCustomName: uploadRes.filename || file.name,
-        heroVideoServerUrl: uploadRes.url
+        heroVideoCustomName: file.name,
+        heroVideoServerUrl: persistentUrl // undefined jika hanya tersimpan di indexeddb
       };
       StorageService.saveAgencySettings(updated);
       setSettings(updated);
 
-      showToast(`Video baru "${file.name}" (${uploadRes.sizeFormatted}) berhasil diunggah ke server Hostinger dan aktif di Beranda.`);
+      if (isSavedToServer) {
+        showToast(`Video baru "${file.name}" berhasil diunggah ke server Hostinger (${persistentUrl}) dan aktif di semua browser.`);
+      } else {
+        showToast(`Video "${file.name}" tersimpan di memori browser ini (IndexedDB).`);
+      }
+      
       onDataChanged();
       window.dispatchEvent(new Event('hero-video-updated'));
     } catch (err: any) {
@@ -128,6 +170,42 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleSaveDirectUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    const url = directVideoUrl.trim();
+    if (!url) {
+      alert('Mohon masukkan tautan URL video yang valid.');
+      return;
+    }
+
+    if (url.startsWith('blob:')) {
+      alert('URL dengan awalan "blob:" adalah sesi sementara browser dan tidak dapat disimpan. Mohon gunakan URL berkas publik seperti /uploads/videos/namafile.mp4 atau https://...');
+      return;
+    }
+
+    const updated = {
+      ...settings,
+      heroVideoCustomName: url.split('/').pop() || 'video-profil.mp4',
+      heroVideoServerUrl: url
+    };
+
+    StorageService.saveAgencySettings(updated);
+    setSettings(updated);
+    setVideoSrc(url);
+    setIsCustom(true);
+    setStorageDestination('server');
+    setVideoMeta({
+      name: updated.heroVideoCustomName,
+      sizeFormatted: 'URL Tautan Langsung',
+      type: 'video/mp4',
+      updatedAt: 'Tersimpan di Server'
+    });
+
+    showToast('Tautan URL video berhasil disimpan dan disinkronkan ke seluruh perangkat.');
+    onDataChanged();
+    window.dispatchEvent(new Event('hero-video-updated'));
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -165,6 +243,21 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
       showToast('Video dikembalikan ke video referensi awal.');
       onDataChanged();
       window.dispatchEvent(new Event('hero-video-updated'));
+    }
+  };
+
+  const handleVideoError = async () => {
+    console.warn('Admin preview video failed to load:', videoSrc);
+    if (videoSrc !== DEFAULT_REFERENCE_VIDEO) {
+      const localBlob = await VideoStorageService.getHeroVideoBlobUrl();
+      if (localBlob && localBlob !== videoSrc) {
+        setVideoSrc(localBlob);
+        setStorageDestination('indexeddb');
+        return;
+      }
+      setVideoSrc(DEFAULT_REFERENCE_VIDEO);
+      setIsCustom(false);
+      setStorageDestination('default');
     }
   };
 
@@ -257,10 +350,15 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-800">Pratinjau Video Aktif</span>
-                {isCustom ? (
+                {storageDestination === 'server' ? (
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Video Kustom Admin
+                    Tersimpan di Server Hostinger (Aktif Semua Browser)
+                  </span>
+                ) : storageDestination === 'indexeddb' ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    Tersimpan di Browser Ini (IndexedDB)
                   </span>
                 ) : (
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
@@ -298,6 +396,7 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
                 loop
                 muted={isMuted}
                 playsInline
+                onError={handleVideoError}
                 className="w-full h-full object-cover"
               />
 
@@ -372,9 +471,45 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
             </span>
 
             <div className="text-[11px] text-slate-400 pt-1">
-              File tersimpan secara permanen pada memori browser via IndexedDB
+              File tersimpan di server Hostinger & memori browser
             </div>
           </div>
+
+          {/* Form Tautan / URL Video Langsung */}
+          <form onSubmit={handleSaveDirectUrl} className="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Link2 className="w-4 h-4 text-[#0f3d5c]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Atau Gunakan Tautan URL Video Langsung
+                </h3>
+              </div>
+              <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-semibold border border-emerald-200">
+                Sinkron Semua Browser
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Jika video Anda berada di hosting Hostinger (misal: <code className="text-[#0f3d5c] font-bold">/uploads/videos/profil.mp4</code>) atau CDN/Cloud luar, tempelkan tautannya di sini agar langsung tampil di semua perangkat tanpa terpengaruh batas upload PHP.
+            </p>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={directVideoUrl}
+                onChange={(e) => setDirectVideoUrl(e.target.value)}
+                placeholder="/uploads/videos/profil-papua-selatan.mp4 atau https://..."
+                className="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0f3d5c] focus:outline-none font-mono"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2.5 bg-[#0f3d5c] hover:bg-[#185377] text-white text-xs font-bold rounded-xl transition shrink-0 cursor-pointer flex items-center gap-1.5"
+              >
+                <Save className="w-3.5 h-3.5 text-amber-400" />
+                <span>Terapkan</span>
+              </button>
+            </div>
+          </form>
 
           {/* Form Takarir Teks Video */}
           <form onSubmit={handleSaveCaptions} className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">

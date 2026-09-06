@@ -7,6 +7,12 @@
  * berbasis PHP/Apache (cPanel/hPanel) tanpa Node.js server aktif.
  */
 
+@ini_set('upload_max_filesize', '128M');
+@ini_set('post_max_size', '128M');
+@ini_set('memory_limit', '256M');
+@ini_set('max_execution_time', '300');
+@ini_set('max_input_time', '300');
+
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -17,13 +23,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+$categories = ['documents', 'images', 'videos', 'general'];
+$uploadsRoot = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads';
+
+function formatBytesPHP($bytes, $precision = 2) {
+    if (!$bytes || $bytes <= 0) return '0 Bytes';
+    $units = ['Bytes', 'KB', 'MB', 'GB'];
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
+    $bytes /= pow(1024, $pow);
+    return round($bytes, $precision) . ' ' . $units[$pow];
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $categoryStats = [];
+    $totalFiles = 0;
+    $totalSize = 0;
+
+    foreach ($categories as $cat) {
+        $catDir = $uploadsRoot . DIRECTORY_SEPARATOR . $cat;
+        $count = 0;
+        $catSize = 0;
+        if (is_dir($catDir)) {
+            $files = array_diff(scandir($catDir), ['.', '..']);
+            $count = count($files);
+            foreach ($files as $f) {
+                $filePath = $catDir . DIRECTORY_SEPARATOR . $f;
+                if (is_file($filePath)) {
+                    $catSize += filesize($filePath);
+                }
+            }
+        }
+        $categoryStats[$cat] = [
+            'count' => $count,
+            'totalSize' => $catSize,
+            'totalSizeFormatted' => formatBytesPHP($catSize)
+        ];
+        $totalFiles += $count;
+        $totalSize += $catSize;
+    }
+
     echo json_encode([
+        'success' => true,
         'status' => 'ok',
-        'service' => 'Bapperida Hostinger PHP Storage Handler',
+        'provider' => 'Hostinger Shared Hosting (PHP Storage)',
         'time' => date('c'),
-        'maxUploadSize' => ini_get('upload_max_filesize'),
-        'postMaxSize' => ini_get('post_max_size')
+        'maxFileSize' => ini_get('upload_max_filesize') ?: '128M',
+        'postMaxSize' => ini_get('post_max_size') ?: '128M',
+        'uploadBasePath' => '/uploads',
+        'totalFiles' => $totalFiles,
+        'totalStorageUsed' => formatBytesPHP($totalSize),
+        'categories' => $categoryStats,
+        'hostingerReady' => true
     ]);
     exit;
 }
@@ -41,10 +93,10 @@ if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
         switch ($_FILES['file']['error']) {
             case UPLOAD_ERR_INI_SIZE:
             case UPLOAD_ERR_FORM_SIZE:
-                $errorMsg = 'Ukuran file melebihi batas maksimal server Hostinger (' . ini_get('upload_max_filesize') . ').';
+                $errorMsg = 'Ukuran file melebihi batas maksimal server Hostinger (' . ini_get('upload_max_filesize') . '). Silakan naikkan upload_max_filesize di cPanel PHP Settings atau gunakan URL tautan video publik.';
                 break;
             case UPLOAD_ERR_PARTIAL:
-                $errorMsg = 'File hanya terunggah sebagian.';
+                $errorMsg = 'File hanya terunggah sebagian karena koneksi terputus.';
                 break;
             case UPLOAD_ERR_NO_FILE:
                 $errorMsg = 'Tidak ada file yang dipilih.';
@@ -56,15 +108,14 @@ if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
 }
 
 $category = isset($_POST['category']) ? preg_replace('/[^a-zA-Z0-9_-]/', '', $_POST['category']) : 'general';
-$allowedCategories = ['documents', 'images', 'videos', 'general'];
-if (!in_array($category, $allowedCategories)) {
+if (!in_array($category, $categories)) {
     $category = 'general';
 }
 
 // Target folder di Hostinger: uploads/{kategori}
-$baseUploadDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $category;
+$baseUploadDir = $uploadsRoot . DIRECTORY_SEPARATOR . $category;
 if (!is_dir($baseUploadDir)) {
-    mkdir($baseUploadDir, 0755, true);
+    @mkdir($baseUploadDir, 0755, true);
 }
 
 $file = $_FILES['file'];
@@ -95,6 +146,7 @@ if (move_uploaded_file($file['tmp_name'], $targetPath)) {
         'originalName' => $originalName,
         'category' => $category,
         'size' => $file['size'],
+        'sizeFormatted' => formatBytesPHP($file['size']),
         'mimetype' => $file['type'],
         'storage' => 'hostinger-php',
         'uploadedAt' => date('c')

@@ -353,7 +353,14 @@ export const StorageService = {
   getAgencySettings(): AgencySettings {
     try {
       const data = localStorage.getItem(KEYS.SETTINGS);
-      if (data) return { ...defaultAgencySettings, ...JSON.parse(data) };
+      if (data) {
+        const parsed = JSON.parse(data);
+        // Sanitize: Jika heroVideoServerUrl adalah blob URL usang, jangan gunakan sebagai server URL
+        if (parsed.heroVideoServerUrl && typeof parsed.heroVideoServerUrl === 'string' && parsed.heroVideoServerUrl.startsWith('blob:')) {
+          delete parsed.heroVideoServerUrl;
+        }
+        return { ...defaultAgencySettings, ...parsed };
+      }
     } catch {
       // ignore
     }
@@ -362,8 +369,13 @@ export const StorageService = {
 
   saveAgencySettings(settings: AgencySettings): void {
     try {
-      localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings));
-      CentralSyncService.syncKeyToServer('settings', settings).catch(() => {});
+      const clean = { ...settings };
+      // Jangan pernah simpan blob: URL yang hanya hidup satu sesi ke penyimpanan permanen
+      if (clean.heroVideoServerUrl && typeof clean.heroVideoServerUrl === 'string' && clean.heroVideoServerUrl.startsWith('blob:')) {
+        delete clean.heroVideoServerUrl;
+      }
+      localStorage.setItem(KEYS.SETTINGS, JSON.stringify(clean));
+      CentralSyncService.syncKeyToServer('settings', clean).catch(() => {});
     } catch {
       // ignore
     }
