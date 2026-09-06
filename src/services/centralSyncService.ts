@@ -8,6 +8,18 @@
  * dan tidak hilang saat membuka dari domain sementara ataupun domain resmi.
  */
 
+import { UploadService } from './uploadService';
+import { 
+  initialArticles, 
+  initialDocuments, 
+  initialEmployees, 
+  defaultAgencySettings, 
+  regionalIndicatorStats, 
+  initialAgendas, 
+  initialGallery, 
+  initialComplaints 
+} from '../data/mockData';
+
 export const SYNC_KEYS = {
   SETTINGS: 'settings',
   ARTICLES: 'articles',
@@ -30,6 +42,18 @@ export const LOCAL_STORAGE_MAP: Record<string, string> = {
   gallery: 'bapperida_pps_gallery_v1',
   complaints: 'bapperida_pps_complaints_v1',
   info_requests: 'bapperida_pps_info_requests_v1',
+};
+
+const DEFAULTS_MAP: Record<string, any> = {
+  articles: initialArticles,
+  documents: initialDocuments,
+  employees: initialEmployees,
+  settings: defaultAgencySettings,
+  indicators: regionalIndicatorStats,
+  agendas: initialAgendas,
+  gallery: initialGallery,
+  complaints: initialComplaints,
+  info_requests: []
 };
 
 export interface SyncStatus {
@@ -85,12 +109,32 @@ class CentralSyncServiceManager {
   }
 
   /**
+   * Mengambil origin / URL dasar endpoint jika menggunakan custom server VPS
+   */
+  public getApiBaseUrl(): string {
+    if (typeof window === 'undefined') return '';
+    try {
+      const config = UploadService.getStorageConfig();
+      if (config.provider === 'custom-url' && config.customApiUrl) {
+        return config.customApiUrl.replace(/\/api\/upload\/?$/, '').replace(/\/+$/, '');
+      }
+    } catch {
+      // ignore
+    }
+    return '';
+  }
+
+  /**
    * Mengirim request dengan fallback otomatis dari Node.js API ke PHP API
    */
   private async fetchWithFallback(nodeUrl: string, phpUrl: string, options: RequestInit = {}): Promise<any> {
+    const baseUrl = this.getApiBaseUrl();
+    const fullNodeUrl = nodeUrl.startsWith('http') ? nodeUrl : `${baseUrl}${nodeUrl}`;
+    const fullPhpUrl = phpUrl.startsWith('http') ? phpUrl : `${baseUrl}${phpUrl}`;
+
     try {
-      // 1. Coba endpoint Node.js Express lebih dulu
-      const res = await fetch(nodeUrl, {
+      // 1. Coba endpoint Node.js Express lebih dulu (standar VPS / container)
+      const res = await fetch(fullNodeUrl, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
@@ -99,17 +143,22 @@ class CentralSyncServiceManager {
       });
 
       if (res.ok) {
-        const json = await res.json();
+        const text = await res.text();
+        // Cegah JSON error jika endpoint salah merespons file HTML/PHP
+        if (text.trim().startsWith('<')) {
+          throw new Error('Endpoint Node mengembalikan respons HTML/XML alih-alih JSON.');
+        }
+        const json = JSON.parse(text);
         this.status.serverType = 'hostinger-node';
         return json;
       }
     } catch (nodeErr) {
-      console.warn(`Endpoint Node (${nodeUrl}) belum merespon, mencoba endpoint PHP (${phpUrl})...`);
+      console.warn(`Endpoint Node (${fullNodeUrl}) belum merespon, mencoba endpoint PHP (${fullPhpUrl})...`);
     }
 
     // 2. Fallback ke endpoint Hostinger PHP
     try {
-      const resPhp = await fetch(phpUrl, {
+      const resPhp = await fetch(fullPhpUrl, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +167,12 @@ class CentralSyncServiceManager {
       });
 
       if (resPhp.ok) {
-        const json = await resPhp.json();
+        const text = await resPhp.text();
+        // Cegah JSON parse error jika file php dikembalikan mentah sebagai plain text
+        if (text.trim().startsWith('<?php')) {
+          throw new Error('Server web belum memproses skrip PHP (mengembalikan kode mentah). Jika menggunakan VPS, pastikan backend Node.js aktif di port 3000.');
+        }
+        const json = JSON.parse(text);
         this.status.serverType = 'hostinger-php';
         return json;
       }
@@ -126,6 +180,56 @@ class CentralSyncServiceManager {
     } catch (phpErr: any) {
       this.status.serverType = 'offline';
       throw phpErr;
+    }
+  }
+
+  /**
+   * Cek kesehatan dan status 9 berkas JSON di VPS (/api/vps/status)
+   */
+  public async checkVpsStatus(): Promise<{ success: boolean; data?: any; error?: string }> {
+    const baseUrl = this.getApiBaseUrl();
+    try {
+      const res = await fetch(`${baseUrl}/api/vps/status`);
+      if (res.ok) {
+        const text = await res.text();
+        if (text.trim().startsWith('<?php') || text.trim().startsWith('<')) {
+          return { 
+            success: false, 
+            error: 'Server mengembalikan skrip PHP/HTML mentah. Pastikan Node.js Express aktif di VPS pada port 3000.' 
+          };
+        }
+        const data = JSON.parse(text);
+        return { success: true, data };
+      }
+      return { success: false, error: `Server VPS merespons HTTP ${res.status}: ${res.statusText}` };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Tidak dapat terhubung ke endpoint VPS' };
+    }
+  }
+
+  /**
+   * Inisialisasi atau perbaiki seluruh berkas JSON di VPS (/api/vps/seed)
+   */
+  public async seedVpsData(force = false): Promise<{ success: boolean; message: string }> {
+    const baseUrl = this.getApiBaseUrl();
+    try {
+      const res = await fetch(`${baseUrl}/api/vps/seed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Tarik kembali data terbaru ke browser lokal
+        await this.pullAllFromServer();
+        return { 
+          success: true, 
+          message: data.message || 'Seluruh berkas JSON di VPS berhasil diinisialisasi!' 
+        };
+      }
+      throw new Error(`HTTP ${res.status}`);
+    } catch (e: any) {
+      return { success: false, message: e.message || 'Gagal inisialisasi JSON di VPS' };
     }
   }
 
@@ -267,9 +371,14 @@ class CentralSyncServiceManager {
               delete parsed.heroVideoServerUrl;
             }
             allData[key] = parsed;
+          } else if (DEFAULTS_MAP[key]) {
+            // Gunakan fallback data bawaan jika localStorage belum terisi
+            allData[key] = DEFAULTS_MAP[key];
           }
         } catch {
-          // ignore
+          if (DEFAULTS_MAP[key]) {
+            allData[key] = DEFAULTS_MAP[key];
+          }
         }
       });
 

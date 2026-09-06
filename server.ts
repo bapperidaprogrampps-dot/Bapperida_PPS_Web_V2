@@ -3,6 +3,16 @@ import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { createServer as createViteServer } from 'vite';
+import { 
+  initialArticles, 
+  initialDocuments, 
+  initialEmployees, 
+  defaultAgencySettings, 
+  regionalIndicatorStats, 
+  initialAgendas, 
+  initialGallery, 
+  initialComplaints 
+} from './src/data/mockData';
 
 const app = express();
 const PORT = 3000;
@@ -24,6 +34,56 @@ CATEGORIES.forEach((cat) => {
 if (!fs.existsSync(DATA_BASE_DIR)) {
   fs.mkdirSync(DATA_BASE_DIR, { recursive: true });
 }
+
+// Inisialisasi otomatis seluruh berkas JSON dasar ke /uploads/data/ agar VPS & sinkronisasi langsung siap pakai
+function seedInitialDataFiles(force = false) {
+  const defaultModules: Record<string, any> = {
+    articles: initialArticles,
+    documents: initialDocuments,
+    employees: initialEmployees,
+    settings: defaultAgencySettings,
+    indicators: regionalIndicatorStats,
+    agendas: initialAgendas,
+    gallery: initialGallery,
+    complaints: initialComplaints,
+    info_requests: []
+  };
+
+  let seededCount = 0;
+  Object.entries(defaultModules).forEach(([key, defaultValue]) => {
+    const filePath = path.join(DATA_BASE_DIR, `${key}.json`);
+    let needsWrite = force || !fs.existsSync(filePath);
+
+    if (!needsWrite && fs.existsSync(filePath)) {
+      try {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        // Khusus settings: periksa apakah rusak atau terpotong (misal hanya { agencyName: "Bapperida" })
+        if (key === 'settings' && (!parsed.leaderName || !parsed.officeAddress)) {
+          needsWrite = true;
+          defaultValue = { ...defaultAgencySettings, ...parsed };
+        }
+      } catch {
+        needsWrite = true;
+      }
+    }
+
+    if (needsWrite) {
+      try {
+        fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2), 'utf-8');
+        seededCount++;
+        console.log(`[Seed VPS] Berkas data JSON berhasil diinisialisasi: uploads/data/${key}.json`);
+      } catch (e) {
+        console.error(`[Seed VPS] Gagal menulis uploads/data/${key}.json:`, e);
+      }
+    }
+  });
+
+  return seededCount;
+}
+
+// Jalankan seed saat server pertama kali hidup
+seedInitialDataFiles();
 
 // Configure Multer Storage for Hostinger Server Storage
 const storage = multer.diskStorage({
@@ -61,9 +121,20 @@ const upload = multer({
   }
 });
 
-// JSON body parsing for API
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Enable CORS for all API routes (essential when frontend connects to a VPS IP or custom domain)
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// JSON body parsing for API with 50MB limit to support large data backups
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve Uploaded Files statically from Hostinger server storage
 app.use(
@@ -308,6 +379,88 @@ app.post('/api/data/:key', (req, res) => {
     return res.status(500).json({
       success: false,
       error: error.message || 'Gagal menyimpan data modul ke server'
+    });
+  }
+});
+
+// 5. VPS & JSON Diagnostic & Maintenance Endpoints
+app.get('/api/vps/status', (req, res) => {
+  try {
+    const requiredKeys = ['settings', 'articles', 'documents', 'employees', 'indicators', 'agendas', 'gallery', 'complaints', 'info_requests'];
+    const jsonFilesInfo = requiredKeys.map((key) => {
+      const filePath = path.join(DATA_BASE_DIR, `${key}.json`);
+      const exists = fs.existsSync(filePath);
+      let size = 0;
+      let recordCount: number | null = null;
+      let updatedAt = null;
+
+      if (exists) {
+        try {
+          const stat = fs.statSync(filePath);
+          size = stat.size;
+          updatedAt = stat.mtime.toISOString();
+          const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+          if (Array.isArray(parsed)) {
+            recordCount = parsed.length;
+          } else if (typeof parsed === 'object' && parsed !== null) {
+            recordCount = Object.keys(parsed).length;
+          }
+        } catch {
+          // parse error
+        }
+      }
+
+      return {
+        key,
+        filename: `${key}.json`,
+        exists,
+        size,
+        sizeFormatted: size > 1024 ? `${(size / 1024).toFixed(1)} KB` : `${size} B`,
+        recordCount,
+        updatedAt
+      };
+    });
+
+    const readyFilesCount = jsonFilesInfo.filter((f) => f.exists && f.size > 0).length;
+
+    res.json({
+      success: true,
+      server: 'Hostinger VPS / Node.js Express',
+      port: PORT,
+      status: 'online',
+      nodeVersion: process.version,
+      platform: process.platform,
+      uploadsDir: UPLOADS_BASE_DIR,
+      dataDir: DATA_BASE_DIR,
+      allReady: readyFilesCount === requiredKeys.length,
+      readyCount: readyFilesCount,
+      totalCount: requiredKeys.length,
+      files: jsonFilesInfo,
+      checkedAt: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal memeriksa status VPS & JSON'
+    });
+  }
+});
+
+// Seed / repair all JSON files on VPS
+app.post('/api/vps/seed', (req, res) => {
+  try {
+    const force = req.body?.force === true;
+    const seeded = seedInitialDataFiles(force);
+    res.json({
+      success: true,
+      message: `Berhasil menginisialisasi / menyinkronkan ulang berkas JSON di VPS (${seeded} berkas diproses)`,
+      seededCount: seeded,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal melakukan inisialisasi JSON di VPS'
     });
   }
 });
