@@ -59,6 +59,9 @@ export function AdminDocumentsTab({ documents, onDataChanged, showToast }: Admin
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState('');
 
+  const [coverImage, setCoverImage] = useState('');
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+
   const openAddModal = () => {
     setEditingDoc(null);
     setTitle('');
@@ -70,6 +73,7 @@ export function AdminDocumentsTab({ documents, onDataChanged, showToast }: Admin
     setFileFormat('PDF');
     setDescription('');
     setFileUrl('');
+    setCoverImage('');
     setStorageProvider('hostinger-server');
     setUploadedFileName('');
     setIsModalOpen(true);
@@ -86,6 +90,7 @@ export function AdminDocumentsTab({ documents, onDataChanged, showToast }: Admin
     setFileFormat(doc.fileFormat || 'PDF');
     setDescription(doc.description);
     setFileUrl(doc.fileUrl || '');
+    setCoverImage(doc.coverImage || '');
     setStorageProvider(doc.storageProvider || 'hostinger-server');
     setUploadedFileName(doc.fileUrl ? doc.fileUrl.split('/').pop() || '' : '');
     setIsModalOpen(true);
@@ -118,6 +123,23 @@ export function AdminDocumentsTab({ documents, onDataChanged, showToast }: Admin
     }
   };
 
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingCover(true);
+      const res = await UploadService.uploadFileToServer(file, 'images');
+      setCoverImage(res.url);
+      showToast(`Cover berhasil diunggah! (${res.url})`);
+    } catch (err: any) {
+      alert(`Gagal mengunggah cover: ${err.message}`);
+    } finally {
+      setIsUploadingCover(false);
+      e.target.value = '';
+    }
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim() || !legalBasis.trim()) {
@@ -138,6 +160,7 @@ export function AdminDocumentsTab({ documents, onDataChanged, showToast }: Admin
         fileFormat,
         description,
         fileUrl: fileUrl || editingDoc.fileUrl,
+        coverImage: coverImage || editingDoc.coverImage,
         storageProvider
       });
       showToast(`Dokumen "${title}" berhasil diperbarui.`);
@@ -153,6 +176,7 @@ export function AdminDocumentsTab({ documents, onDataChanged, showToast }: Admin
         fileFormat,
         description,
         fileUrl: fileUrl || undefined,
+        coverImage: coverImage || undefined,
         storageProvider
       });
       showToast(`Dokumen baru "${title}" berhasil ditambahkan.`);
@@ -446,6 +470,51 @@ export function AdminDocumentsTab({ documents, onDataChanged, showToast }: Admin
                     Belum ada berkas fisik yang diunggah. Warga akan mengunduh ikhtisar resmi jika berkas belum diunggah.
                   </div>
                 )}
+              </div>
+
+              {/* Cover Image Upload */}
+              <div className="p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                      <ExternalLink className="w-3.5 h-3.5 text-indigo-700" />
+                      <span>Unggah Cover Dokumen (Tampilan Perpustakaan)</span>
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Mendukung format JPG/PNG. Digunakan sebagai cover buku di halaman Repositori.
+                    </span>
+                  </div>
+
+                  <label className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 self-start sm:self-auto">
+                    <UploadCloud className="w-3.5 h-3.5 text-indigo-200" />
+                    <span>{isUploadingCover ? 'Mengunggah...' : 'Pilih Gambar Cover'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverUpload}
+                      disabled={isUploadingCover}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                
+                <div className="flex gap-2 items-center mt-2">
+                  <input
+                    type="text"
+                    placeholder="Atau masukkan URL gambar cover secara manual..."
+                    value={coverImage}
+                    onChange={(e) => setCoverImage(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-hidden focus:border-indigo-500"
+                  />
+                  {coverImage && (
+                    <img
+                      src={coverImage}
+                      alt="Cover Preview"
+                      className="w-10 h-10 rounded object-cover border border-slate-200 shrink-0"
+                      referrerPolicy="no-referrer"
+                    />
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

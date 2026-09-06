@@ -9,9 +9,7 @@ import {
   Building2, 
   MapPin, 
   Users, 
-  TrendingUp, 
   CheckCircle2, 
-  Compass, 
   ExternalLink,
   ChevronRight,
   Clock,
@@ -48,79 +46,23 @@ export function HomeView({
 
   // Dynamic CMS settings from StorageService
   const settings = StorageService.getAgencySettings();
-  const indicatorStats = StorageService.getIndicatorStats();
 
   return (
-    <div className="space-y-12 relative overflow-hidden">
+    <div className="space-y-16 pb-16 relative overflow-hidden bg-slate-50/30">
+      {/* Subtle Background Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-[15%] -left-[10%] w-[40%] h-[500px] rounded-full bg-amber-500/5 blur-[120px]"></div>
+        <div className="absolute top-[45%] -right-[5%] w-[35%] h-[600px] rounded-full bg-[#0f3d5c]/5 blur-[120px]"></div>
+        <div className="absolute bottom-[10%] left-[20%] w-[50%] h-[400px] rounded-full bg-teal-500/5 blur-[120px]"></div>
+      </div>
+
       {/* 1. Hero Banner dengan Video & Animasi Masuk Pertama */}
       <HeroBanner setActivePage={setActivePage} />
 
-      {/* 2. Key Indicators Bar */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 -mt-8 relative z-20">
-        <ScrollReveal variant="fade-up" duration={0.7} distance={20}>
-          <StaggerContainer staggerDelay={0.08} className="bg-white rounded-xl border border-slate-200 p-5 grid grid-cols-2 lg:grid-cols-4 gap-6 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
-            <StaggerItem variant="zoom-in" className="flex items-center gap-3 pt-2 lg:pt-0">
-              <div className="p-3 bg-amber-50 rounded-lg text-amber-700">
-                <Compass className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 font-medium">Cakupan Wilayah</div>
-                <div className="text-lg font-bold text-slate-900">4 Kabupaten</div>
-                <div className="text-[11px] text-slate-400">Merauke, Boven Digoel, Mappi, Asmat</div>
-              </div>
-            </StaggerItem>
-
-            <StaggerItem variant="zoom-in" className="flex items-center gap-3 pt-4 lg:pt-0 lg:pl-6">
-              <div className="p-3 bg-blue-50 rounded-lg text-[#0f3d5c]">
-                <FileText className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 font-medium">Dokumen Perencanaan</div>
-                <div className="text-lg font-bold text-slate-900">{documents.length}+ Dokumen</div>
-                <div className="text-[11px] text-emerald-600 font-medium">Tersedia Publik (PDF)</div>
-              </div>
-            </StaggerItem>
-
-            <StaggerItem variant="zoom-in" className="flex items-center gap-3 pt-4 lg:pt-0 lg:pl-6">
-              <div className="p-3 bg-emerald-50 rounded-lg text-emerald-700">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 font-medium">Pertumbuhan Ekonomi</div>
-                <div className="text-lg font-bold text-slate-900">
-                  {indicatorStats.length > 0 ? `${indicatorStats[indicatorStats.length - 1].growthRate}% YoY` : '5.12% YoY'}
-                </div>
-                <div className="text-[11px] text-emerald-600 font-medium">
-                  Periode {indicatorStats.length > 0 ? indicatorStats[indicatorStats.length - 1].year : '2025/2026'}
-                </div>
-              </div>
-            </StaggerItem>
-
-            <StaggerItem variant="zoom-in" className="flex items-center gap-3 pt-4 lg:pt-0 lg:pl-6">
-              <div className="p-3 bg-indigo-50 rounded-lg text-indigo-700">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 font-medium">Indeks Pembangunan (IPM)</div>
-                <div className="text-lg font-bold text-slate-900">
-                  {indicatorStats.length > 0 ? indicatorStats[indicatorStats.length - 1].ipm : '62.45'}
-                </div>
-                <div className="text-[11px] text-indigo-600 font-medium">
-                  Periode {indicatorStats.length > 0 ? indicatorStats[indicatorStats.length - 1].year : '2025/2026'}
-                </div>
-              </div>
-            </StaggerItem>
-          </StaggerContainer>
-        </ScrollReveal>
-      </section>
-
       {/* 2. Kata Sambutan Kepala Badan */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10" id="sambutan-kepala-badan">
+      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10" id="sambutan-kepala-badan">
         <ScrollReveal variant="fade-up" duration={0.75} distance={30}>
-          <div className="bg-gradient-to-br from-white via-slate-50/80 to-amber-50/30 rounded-2xl border border-slate-200 overflow-hidden">
-            {/* Top Decorative Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#0f3d5c] via-amber-500 to-[#185377]"></div>
-
+          <div className="bg-gradient-to-br from-white via-slate-50/80 to-amber-50/30 rounded-2xl overflow-hidden">
             <div className="p-6 sm:p-8 lg:p-10">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                 
@@ -162,7 +104,7 @@ export function HomeView({
                   </div>
 
                   {/* Sub-badge: Kutipan Visi Singkat */}
-                  <div className="mt-4 p-3.5 bg-white rounded-xl border border-slate-200 text-center w-full max-w-[280px] sm:max-w-[320px]">
+                  <div className="mt-4 p-3.5 bg-white rounded-xl text-center w-full max-w-[280px] sm:max-w-[320px]">
                     <div className="flex items-center justify-center gap-1.5 text-amber-600 text-xs font-bold mb-1">
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>Motto Kepemimpinan</span>
@@ -272,170 +214,197 @@ export function HomeView({
       </section>
 
       {/* 3. Akses Layanan Cepat (Quick Services Cards) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-        <ScrollReveal variant="fade-up" duration={0.65}>
-          <div className="text-center max-w-2xl mx-auto mb-8">
-            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block mb-1">
-              Layanan Digital Bapperida
-            </span>
-            <h2 className="text-2xl font-bold text-slate-900">
-              Akses Cepat Kanal Pelayanan Publik & Informasi
-            </h2>
-            <p className="text-sm text-slate-600 mt-2">
-              Pusat akses dokumen resmi, permohonan informasi PPID, pelaporan aspirasi, dan data statistik makro.
-            </p>
-          </div>
-        </ScrollReveal>
-
-        <StaggerContainer staggerDelay={0.08} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {/* Card 1: Dokumen Perencanaan */}
-          <StaggerItem variant="zoom-in">
-            <div 
-              onClick={() => setActivePage('dokumen')}
-              className="p-6 bg-white rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer group h-full flex flex-col justify-between"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-lg bg-blue-50 text-[#0f3d5c] flex items-center justify-center mb-4 group-hover:bg-[#0f3d5c] group-hover:text-white transition">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-[#0f3d5c] transition">
-                  Dokumen Perencanaan Daerah
-                </h3>
-                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                  Unduh salinan resmi RPJPD 2025–2045, RKPD tahunan, Renstra, Renja, dan KUA-PPAS Provinsi Papua Selatan.
-                </p>
-              </div>
-              <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#0f3d5c]">
-                <span>Buka Repositori Dokumen</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
-              </div>
+      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+        <div className="bg-white/60 backdrop-blur-xl rounded-[2.5rem] p-6 sm:p-8 lg:p-12 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <ScrollReveal variant="fade-up" duration={0.65}>
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-bold uppercase tracking-widest border border-amber-200/50 mb-3">
+                <Sparkles className="w-3.5 h-3.5" />
+                Layanan Digital
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0f3d5c] tracking-tight">
+                Kanal Pelayanan Publik & Informasi
+              </h2>
+              <p className="text-sm text-slate-500 mt-3 max-w-lg mx-auto">
+                Pusat akses dokumen resmi, permohonan informasi PPID, pelaporan aspirasi, dan data statistik makro.
+              </p>
             </div>
-          </StaggerItem>
+          </ScrollReveal>
 
-          {/* Card 2: Layanan PPID */}
-          <StaggerItem variant="zoom-in">
-            <div 
-              onClick={() => setActivePage('layanan')}
-              className="p-6 bg-white rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer group h-full flex flex-col justify-between"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center mb-4 group-hover:bg-amber-600 group-hover:text-white transition">
-                  <ShieldCheck className="w-6 h-6" />
+          <StaggerContainer staggerDelay={0.08} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+            {/* Card 1: Dokumen Perencanaan */}
+            <StaggerItem variant="zoom-in">
+              <div 
+                onClick={() => setActivePage('dokumen')}
+                className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
+              >
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-blue-100/50">
+                    <FileText className="w-7 h-7" />
+                  </div>
+                  <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
+                    Dokumen Perencanaan Daerah
+                  </h3>
+                  <p className="text-[13px] text-slate-500 mt-2.5 leading-relaxed">
+                    Unduh salinan resmi RPJPD 2025–2045, RKPD tahunan, Renstra, Renja, dan KUA-PPAS Provinsi Papua Selatan.
+                  </p>
                 </div>
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-[#0f3d5c] transition">
-                  Layanan Informasi Publik (PPID)
-                </h3>
-                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                  Ajukan permohonan informasi publik secara online, unduh formulir PPID, dan pelajari alur layanan resmi.
-                </p>
+                <div className="mt-5 flex items-center justify-between relative z-10">
+                  <span className="text-[13px] font-bold text-[#0f3d5c]">Buka Repositori</span>
+                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-[#0f3d5c] group-hover:text-white transition-colors duration-300">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+                {/* Decorative Bottom Bar */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-[#0f3d5c] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
               </div>
-              <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#0f3d5c]">
-                <span>Ajukan Permohonan PPID</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
-              </div>
-            </div>
-          </StaggerItem>
+            </StaggerItem>
 
-          {/* Card 3: Pengaduan & Lacak Tiket */}
-          <StaggerItem variant="zoom-in">
-            <div 
-              onClick={() => setActivePage('pengaduan')}
-              className="p-6 bg-white rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer group h-full flex flex-col justify-between"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition">
-                  <Building2 className="w-6 h-6" />
+            {/* Card 2: Layanan PPID */}
+            <StaggerItem variant="zoom-in">
+              <div 
+                onClick={() => setActivePage('layanan')}
+                className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
+              >
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100/50 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-amber-100/50">
+                    <ShieldCheck className="w-7 h-7" />
+                  </div>
+                  <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
+                    Layanan Informasi Publik (PPID)
+                  </h3>
+                  <p className="text-[13px] text-slate-500 mt-2.5 leading-relaxed">
+                    Ajukan permohonan informasi publik secara online, unduh formulir PPID, dan pelajari alur layanan resmi.
+                  </p>
                 </div>
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-[#0f3d5c] transition">
-                  Pengaduan & Lacak Tiket
-                </h3>
-                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                  Sampaikan aspirasi infrastruktur dan perencanaan daerah, serta pantau status penanganan tiket secara real-time.
-                </p>
+                <div className="mt-5 flex items-center justify-between relative z-10">
+                  <span className="text-[13px] font-bold text-[#0f3d5c]">Ajukan Permohonan</span>
+                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-[#0f3d5c] group-hover:text-white transition-colors duration-300">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+                {/* Decorative Bottom Bar */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-[#0f3d5c] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
               </div>
-              <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#0f3d5c]">
-                <span>Formulir & Tracking Tiket</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
-              </div>
-            </div>
-          </StaggerItem>
+            </StaggerItem>
 
-          {/* Card 4: BRIDA (Riset & Inovasi Daerah) */}
-          <StaggerItem variant="zoom-in">
-            <div 
-              onClick={() => setActivePage('berita')}
-              className="p-6 bg-white rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer group h-full flex flex-col justify-between"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center mb-4 group-hover:bg-purple-600 group-hover:text-white transition">
-                  <Microscope className="w-6 h-6" />
+            {/* Card 3: Pengaduan & Lacak Tiket */}
+            <StaggerItem variant="zoom-in">
+              <div 
+                onClick={() => setActivePage('pengaduan')}
+                className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
+              >
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-emerald-100/50">
+                    <Building2 className="w-7 h-7" />
+                  </div>
+                  <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
+                    Pengaduan & Lacak Tiket
+                  </h3>
+                  <p className="text-[13px] text-slate-500 mt-2.5 leading-relaxed">
+                    Sampaikan aspirasi infrastruktur dan perencanaan daerah, serta pantau status penanganan tiket secara real-time.
+                  </p>
                 </div>
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-[#0f3d5c] transition">
-                  Riset & Inovasi Daerah (BRIDA)
-                </h3>
-                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                  Hasil kajian ilmiah komoditas sagu, logistik rawa, ketahanan pangan, dan kolaborasi bersama BRIN serta perguruan tinggi.
-                </p>
+                <div className="mt-5 flex items-center justify-between relative z-10">
+                  <span className="text-[13px] font-bold text-[#0f3d5c]">Formulir Tiket</span>
+                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-[#0f3d5c] group-hover:text-white transition-colors duration-300">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+                {/* Decorative Bottom Bar */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-[#0f3d5c] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
               </div>
-              <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#0f3d5c]">
-                <span>Eksplorasi Riset Unggulan</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
-              </div>
-            </div>
-          </StaggerItem>
+            </StaggerItem>
 
-          {/* Card 5: Data & Statistik */}
-          <StaggerItem variant="zoom-in">
-            <div 
-              onClick={() => setActivePage('data-statistik')}
-              className="p-6 bg-white rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer group h-full flex flex-col justify-between"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition">
-                  <BarChart3 className="w-6 h-6" />
+            {/* Card 4: BRIDA (Riset & Inovasi Daerah) */}
+            <StaggerItem variant="zoom-in">
+              <div 
+                onClick={() => setActivePage('berita')}
+                className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
+              >
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100/50 text-purple-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-purple-100/50">
+                    <Microscope className="w-7 h-7" />
+                  </div>
+                  <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
+                    Riset & Inovasi (BRIDA)
+                  </h3>
+                  <p className="text-[13px] text-slate-500 mt-2.5 leading-relaxed">
+                    Hasil kajian ilmiah komoditas sagu, logistik rawa, ketahanan pangan, dan kolaborasi bersama BRIN serta PT.
+                  </p>
                 </div>
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-[#0f3d5c] transition">
-                  Data & Indikator Makro Daerah
-                </h3>
-                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                  Visualisasi tren angka kemiskinan, IPM, laju inflasi, dan perbandingan potensi 4 Kabupaten Papua Selatan.
-                </p>
+                <div className="mt-5 flex items-center justify-between relative z-10">
+                  <span className="text-[13px] font-bold text-[#0f3d5c]">Eksplorasi Riset</span>
+                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-[#0f3d5c] group-hover:text-white transition-colors duration-300">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+                {/* Decorative Bottom Bar */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-[#0f3d5c] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
               </div>
-              <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#0f3d5c]">
-                <span>Lihat Grafik & Statistik</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
-              </div>
-            </div>
-          </StaggerItem>
+            </StaggerItem>
 
-          {/* Card 6: Agenda & Musrenbang */}
-          <StaggerItem variant="zoom-in">
-            <div 
-              onClick={() => setActivePage('agenda')}
-              className="p-6 bg-white rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer group h-full flex flex-col justify-between"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-lg bg-orange-50 text-orange-700 flex items-center justify-center mb-4 group-hover:bg-orange-600 group-hover:text-white transition">
-                  <Calendar className="w-6 h-6" />
+            {/* Card 5: Data & Statistik */}
+            <StaggerItem variant="zoom-in">
+              <div 
+                onClick={() => setActivePage('data-statistik')}
+                className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
+              >
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-50 to-teal-100/50 text-teal-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-teal-100/50">
+                    <BarChart3 className="w-7 h-7" />
+                  </div>
+                  <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
+                    Data & Indikator Makro
+                  </h3>
+                  <p className="text-[13px] text-slate-500 mt-2.5 leading-relaxed">
+                    Visualisasi tren angka kemiskinan, IPM, laju inflasi, dan perbandingan potensi 4 Kabupaten Papua Selatan.
+                  </p>
                 </div>
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-[#0f3d5c] transition">
-                  Agenda & Kegiatan Bapperida
-                </h3>
-                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                  Jadwal pelaksanaan Musrenbang, rapat koordinasi perencanaan kewilayahan, dan bimbingan teknis OPD se-Papua Selatan.
-                </p>
+                <div className="mt-5 flex items-center justify-between relative z-10">
+                  <span className="text-[13px] font-bold text-[#0f3d5c]">Lihat Statistik</span>
+                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-[#0f3d5c] group-hover:text-white transition-colors duration-300">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+                {/* Decorative Bottom Bar */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-[#0f3d5c] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
               </div>
-              <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#0f3d5c]">
-                <span>Cek Jadwal Agenda</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+            </StaggerItem>
+
+            {/* Card 6: Agenda & Musrenbang */}
+            <StaggerItem variant="zoom-in">
+              <div 
+                onClick={() => setActivePage('agenda')}
+                className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
+              >
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100/50 text-orange-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-orange-100/50">
+                    <Calendar className="w-7 h-7" />
+                  </div>
+                  <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
+                    Agenda & Musrenbang
+                  </h3>
+                  <p className="text-[13px] text-slate-500 mt-2.5 leading-relaxed">
+                    Jadwal pelaksanaan Musrenbang, rapat koordinasi perencanaan kewilayahan, dan bimbingan teknis OPD.
+                  </p>
+                </div>
+                <div className="mt-5 flex items-center justify-between relative z-10">
+                  <span className="text-[13px] font-bold text-[#0f3d5c]">Cek Jadwal</span>
+                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-[#0f3d5c] group-hover:text-white transition-colors duration-300">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+                {/* Decorative Bottom Bar */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-[#0f3d5c] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
               </div>
-            </div>
-          </StaggerItem>
-        </StaggerContainer>
+            </StaggerItem>
+          </StaggerContainer>
+        </div>
       </section>
 
       {/* 4. Highlight Dokumen Perencanaan Terkini */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
         <ScrollReveal variant="fade-up" duration={0.7}>
           <div className="bg-slate-50/90 backdrop-blur-xs border border-slate-200 rounded-2xl p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -490,7 +459,7 @@ export function HomeView({
       </section>
 
       {/* 5. Berita Terkini & Agenda Berdampingan */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Berita (8 Cols) - Slide from Left */}
           <ScrollReveal variant="fade-right" duration={0.75} className="lg:col-span-8 space-y-6">
@@ -608,7 +577,7 @@ export function HomeView({
 
       {/* 6. Wilayah Kerja 4 Kabupaten Anim Ha */}
       <section className="bg-slate-100/80 backdrop-blur-xs py-12 border-y border-slate-200 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <ScrollReveal variant="fade-up" duration={0.65}>
             <div className="text-center max-w-2xl mx-auto mb-8">
               <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block mb-1">

@@ -18,6 +18,7 @@ import {
 import { Complaint, ComplaintStatus } from '../types';
 import { StorageService } from '../services/storage';
 import { ScrollReveal } from '../components/ScrollAnimations';
+import { PageHeaderBanner } from '../components/PageHeaderBanner';
 
 interface ComplaintsViewProps {
   complaints: Complaint[];
@@ -111,47 +112,42 @@ export function ComplaintsView({ complaints, onComplaintCreated }: ComplaintsVie
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Header Banner */}
-      <ScrollReveal variant="fade-up" duration={0.6}>
-        <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl">
-          <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-widest mb-1">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Kanal Aspirasi & Pengaduan Masyarakat</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Layanan Pengaduan & Aspirasi Bapperida
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-3xl leading-relaxed">
-            Salurkan pengaduan, masukan perencanaan infrastruktur, serta aspirasi pembangunan wilayah Anim Ha secara langsung dan terpantau dengan nomor tiket transparan.
-          </p>
-
-          {/* Tab switchers */}
-          <div className="flex items-center gap-2 mt-6">
-            <button
-              onClick={() => setActiveTab('buat')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
-                activeTab === 'buat'
-                  ? 'bg-amber-400 text-slate-950'
-                  : 'bg-white/10 hover:bg-white/20 text-white'
-              }`}
-            >
-              Sampaikan Pengaduan Baru
-            </button>
-            <button
-              onClick={() => setActiveTab('lacak')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'lacak'
-                  ? 'bg-amber-400 text-slate-950'
-                  : 'bg-white/10 hover:bg-white/20 text-white'
-              }`}
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>Lacak Status Tiket Pengaduan</span>
-            </button>
-          </div>
+    <div className="w-full pb-16 space-y-8">
+      {/* Header Banner - Full Width Kiri & Kanan Mentok dengan Siluet Rusa di Sebelah Kanan */}
+      <PageHeaderBanner
+        badgeIcon={<ShieldCheck className="w-4 h-4" />}
+        badgeText="Kanal Aspirasi & Pengaduan Masyarakat"
+        title="Layanan Pengaduan & Aspirasi Bapperida"
+        description="Salurkan pengaduan, masukan perencanaan infrastruktur, serta aspirasi pembangunan wilayah Anim Ha secara langsung dan terpantau dengan nomor tiket transparan."
+      >
+        {/* Tab switchers */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('buat')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+              activeTab === 'buat'
+                ? 'bg-amber-400 text-slate-950 font-bold shadow-xs'
+                : 'bg-white/10 hover:bg-white/20 text-white'
+            }`}
+          >
+            Sampaikan Pengaduan Baru
+          </button>
+          <button
+            onClick={() => setActiveTab('lacak')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'lacak'
+                ? 'bg-amber-400 text-slate-950 font-bold shadow-xs'
+                : 'bg-white/10 hover:bg-white/20 text-white'
+            }`}
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Lacak Status Tiket Pengaduan</span>
+          </button>
         </div>
-      </ScrollReveal>
+      </PageHeaderBanner>
+
+      {/* Main Content Area - Boxed */}
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-8">
 
       {/* Mode 1: Buat Pengaduan */}
       {activeTab === 'buat' && (
@@ -556,6 +552,7 @@ export function ComplaintsView({ complaints, onComplaintCreated }: ComplaintsVie
         </div>
       </ScrollReveal>
       )}
+      </div>
     </div>
   );
 }

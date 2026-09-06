@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon, MapPin, Calendar, X, Eye, Filter } from 'lucide-react';
 import { GalleryItem } from '../types';
+import { PageHeaderBanner } from '../components/PageHeaderBanner';
 
 interface GalleryViewProps {
   gallery: GalleryItem[];
@@ -18,20 +19,17 @@ export function GalleryView({ gallery }: GalleryViewProps) {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl">
-        <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-widest mb-1">
-          <ImageIcon className="w-4 h-4" />
-          <span>Dokumentasi Visual</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Galeri Kegiatan & Pembangunan Daerah
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-3xl leading-relaxed">
-          Arsip dokumentasi kegiatan rapat koordinasi, musrenbang provinsi, riset lapangan BRIDA, serta peninjauan progres infrastruktur di seluruh wilayah Provinsi Papua Selatan.
-        </p>
-      </div>
+    <div className="w-full pb-16 space-y-8">
+      {/* Header Banner - Full Width Kiri & Kanan Mentok dengan Siluet Rusa di Sebelah Kanan */}
+      <PageHeaderBanner
+        badgeIcon={<ImageIcon className="w-4 h-4" />}
+        badgeText="Dokumentasi Visual"
+        title="Galeri Kegiatan & Pembangunan Daerah"
+        description="Arsip dokumentasi kegiatan rapat koordinasi, musrenbang provinsi, riset lapangan BRIDA, serta peninjauan progres infrastruktur di seluruh wilayah Provinsi Papua Selatan."
+      />
+
+      {/* Main Content Area - Boxed */}
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-8">
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-2 text-xs">
@@ -61,7 +59,7 @@ export function GalleryView({ gallery }: GalleryViewProps) {
             onClick={() => setActivePhoto(item)}
             className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer group flex flex-col"
           >
-            <div className="aspect-4/3 w-full overflow-hidden bg-slate-100 relative">
+            <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">
               <img
                 src={item.imageUrl}
                 alt={item.title}
@@ -99,6 +97,7 @@ export function GalleryView({ gallery }: GalleryViewProps) {
             </div>
           </div>
         ))}
+      </div>
       </div>
 
       {/* Lightbox Modal */}

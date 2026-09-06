@@ -47,9 +47,12 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
   };
 
   const handleMouseLeave = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     timeoutRef.current = setTimeout(() => {
       setActiveDropdown(null);
-    }, 180);
+    }, 25);
   };
 
   const handleNavClick = (page: ActivePage) => {
@@ -64,20 +67,22 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-none border-none">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         {/* Single Slim Navigation Row */}
         <div className="flex items-center justify-between h-16" ref={dropdownRef}>
           {/* Sisi Kiri: Identitas Logo yang besarnya serasi dengan tinggi teks */}
-          <GovernmentBrandHeader 
-            variant="light" 
-            simple={true}
-            logoClassName="h-7 sm:h-8 w-auto"
-            onClick={() => handleNavClick('beranda')} 
-          />
+          <div className="flex-shrink-0">
+            <GovernmentBrandHeader 
+              variant="light" 
+              simple={true}
+              logoClassName="h-7 sm:h-8 w-auto"
+              onClick={() => handleNavClick('beranda')} 
+            />
+          </div>
 
-          {/* Sisi Kanan: Opsi Menu Rata Kanan di Samping Logo Pencarian */}
+          {/* Sisi Tengah: Opsi Menu Berada di Center */}
           {/* Urutan: Beranda > Profil > Informasi Publik > Berita > Galeri > Dokumen perencanaan > Layanan */}
-          <nav className="hidden lg:flex items-center gap-1.5 xl:gap-2.5 ml-auto">
+          <nav className="hidden lg:flex items-center justify-center gap-1 xl:gap-2.5 mx-auto">
             {/* 1. Beranda */}
             <button
               onClick={() => handleNavClick('beranda')}
@@ -115,9 +120,7 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
                 className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
                   isInformasiActive
                     ? 'text-[#0f3d5c] font-bold'
-                    : activeDropdown === 'informasi'
-                    ? 'text-[#0f3d5c] font-semibold'
-                    : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
+                    : `${activeDropdown === 'informasi' ? 'text-[#0f3d5c]' : 'text-slate-600'} hover:text-[#0f3d5c] font-medium`
                 }`}
                 id="nav-dropdown-informasi"
                 aria-expanded={activeDropdown === 'informasi'}
@@ -128,19 +131,19 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
               <AnimatePresence>
                 {activeDropdown === 'informasi' && (
                   <motion.div 
-                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                    initial={{ opacity: 0, y: 3, scale: 0.99 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute top-full right-0 mt-1.5 w-44 bg-white rounded-xl border border-slate-200 py-1.5 z-50 overflow-hidden before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-['']"
+                    exit={{ opacity: 0, y: 2, scale: 0.99 }}
+                    transition={{ duration: 0.07, ease: "easeOut" }}
+                    className="absolute top-full left-0 mt-1.5 w-44 bg-white rounded-xl border border-slate-200 py-1.5 z-50 overflow-hidden before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-[''] shadow-lg"
                     onMouseEnter={() => handleMouseEnter('informasi')}
                     onMouseLeave={handleMouseLeave}
                   >
                     <button
                       onClick={() => handleNavClick('agenda')}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block font-medium ${
                         activePage === 'agenda'
-                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          ? 'text-[#0f3d5c] bg-slate-50'
                           : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
                       }`}
                       id="dropdown-item-agenda"
@@ -149,10 +152,22 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
                     </button>
 
                     <button
+                      onClick={() => handleNavClick('dokumen')}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block font-medium ${
+                        activePage === 'dokumen'
+                          ? 'text-[#0f3d5c] bg-slate-50'
+                          : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
+                      }`}
+                      id="dropdown-item-dokumen"
+                    >
+                      Dokumen Perencanaan
+                    </button>
+
+                    <button
                       onClick={() => handleNavClick('data-statistik')}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block font-medium ${
                         activePage === 'data-statistik'
-                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          ? 'text-[#0f3d5c] bg-slate-50'
                           : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
                       }`}
                       id="dropdown-item-data-statistik"
@@ -190,20 +205,7 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
               Galeri
             </button>
 
-            {/* 6. Dokumen Perencanaan */}
-            <button
-              onClick={() => handleNavClick('dokumen')}
-              className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
-                activePage === 'dokumen'
-                  ? 'text-[#0f3d5c] font-bold'
-                  : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
-              }`}
-              id="nav-item-dokumen"
-            >
-              Dokumen Perencanaan
-            </button>
-
-            {/* 7. Layanan (Dropdown: Layanan PPID, Pengaduan, Kontak) */}
+            {/* 6. Layanan (Dropdown: Layanan PPID, Pengaduan, Kontak) */}
             <div 
               className="relative"
               onMouseEnter={() => handleMouseEnter('layanan')}
@@ -214,9 +216,7 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
                 className={`px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors cursor-pointer bg-transparent border-none ${
                   isLayananActive
                     ? 'text-[#0f3d5c] font-bold'
-                    : activeDropdown === 'layanan'
-                    ? 'text-[#0f3d5c] font-semibold'
-                    : 'text-slate-600 hover:text-[#0f3d5c] font-medium'
+                    : `${activeDropdown === 'layanan' ? 'text-[#0f3d5c]' : 'text-slate-600'} hover:text-[#0f3d5c] font-medium`
                 }`}
                 id="nav-dropdown-layanan"
                 aria-expanded={activeDropdown === 'layanan'}
@@ -227,19 +227,19 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
               <AnimatePresence>
                 {activeDropdown === 'layanan' && (
                   <motion.div 
-                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                    initial={{ opacity: 0, y: 3, scale: 0.99 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute top-full right-0 mt-1.5 w-44 bg-white rounded-xl border border-slate-200 py-1.5 z-50 overflow-hidden before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-['']"
+                    exit={{ opacity: 0, y: 2, scale: 0.99 }}
+                    transition={{ duration: 0.07, ease: "easeOut" }}
+                    className="absolute top-full right-0 mt-1.5 w-44 bg-white rounded-xl border border-slate-200 py-1.5 z-50 overflow-hidden before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-[''] shadow-lg"
                     onMouseEnter={() => handleMouseEnter('layanan')}
                     onMouseLeave={handleMouseLeave}
                   >
                     <button
                       onClick={() => handleNavClick('layanan')}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block font-medium ${
                         activePage === 'layanan'
-                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          ? 'text-[#0f3d5c] bg-slate-50'
                           : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
                       }`}
                       id="dropdown-item-ppid"
@@ -249,9 +249,9 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
 
                     <button
                       onClick={() => handleNavClick('pengaduan')}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block font-medium ${
                         activePage === 'pengaduan'
-                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          ? 'text-[#0f3d5c] bg-slate-50'
                           : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
                       }`}
                       id="dropdown-item-pengaduan"
@@ -261,9 +261,9 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
 
                     <button
                       onClick={() => handleNavClick('kontak')}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block ${
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer bg-transparent border-none block font-medium ${
                         activePage === 'kontak'
-                          ? 'text-[#0f3d5c] font-bold bg-slate-50'
+                          ? 'text-[#0f3d5c] bg-slate-50'
                           : 'text-slate-700 hover:text-[#0f3d5c] hover:bg-slate-50'
                       }`}
                       id="dropdown-item-kontak"
@@ -274,36 +274,39 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
                 )}
               </AnimatePresence>
             </div>
+          </nav>
 
-            {/* Tombol Kaca Pembesar Sederhana */}
+          {/* Sisi Kanan: Tombol Kaca Pembesar di Desktop & Tombol Mobile */}
+          <div className="flex items-center justify-end flex-shrink-0">
+            {/* Tombol Kaca Pembesar Desktop */}
             <button
               onClick={onOpenSearch}
-              className="p-2 text-slate-600 hover:text-[#0f3d5c] transition-colors cursor-pointer bg-transparent border-none ml-1"
+              className="hidden lg:flex p-2 text-slate-600 hover:text-[#0f3d5c] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer bg-transparent border-none"
               title="Pencarian Cepat"
               aria-label="Pencarian Cepat"
               id="nav-search-button"
             >
               <Search className="w-4.5 h-4.5" />
             </button>
-          </nav>
 
-          {/* Tombol Mobile: Logo Kaca Pembesar & Menu Hamburger */}
-          <div className="flex items-center gap-1 lg:hidden">
-            <button
-              onClick={onOpenSearch}
-              className="p-2 text-slate-700 hover:text-[#0f3d5c] transition-colors cursor-pointer bg-transparent border-none"
-              aria-label="Pencarian Cepat"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-700 hover:text-[#0f3d5c] transition-colors cursor-pointer bg-transparent border-none"
-              aria-label="Buka Menu Navigasi"
-              id="mobile-menu-toggle-btn"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            {/* Tombol Mobile: Logo Kaca Pembesar & Menu Hamburger */}
+            <div className="flex items-center gap-1 lg:hidden">
+              <button
+                onClick={onOpenSearch}
+                className="p-2 text-slate-700 hover:text-[#0f3d5c] transition-colors cursor-pointer bg-transparent border-none"
+                aria-label="Pencarian Cepat"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 text-slate-700 hover:text-[#0f3d5c] transition-colors cursor-pointer bg-transparent border-none"
+                aria-label="Buka Menu Navigasi"
+                id="mobile-menu-toggle-btn"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -366,6 +369,14 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
                     Agenda
                   </button>
                   <button
+                    onClick={() => handleNavClick('dokumen')}
+                    className={`w-full px-3 py-2 text-sm rounded-md text-left transition ${
+                      activePage === 'dokumen' ? 'text-[#0f3d5c] font-bold bg-white' : 'text-slate-700 hover:bg-white'
+                    }`}
+                  >
+                    Dokumen Perencanaan
+                  </button>
+                  <button
                     onClick={() => handleNavClick('data-statistik')}
                     className={`w-full px-3 py-2 text-sm rounded-md text-left transition ${
                       activePage === 'data-statistik' ? 'text-[#0f3d5c] font-bold bg-white' : 'text-slate-700 hover:bg-white'
@@ -405,21 +416,7 @@ export function Header({ activePage, setActivePage, onOpenSearch }: HeaderProps)
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </button>
 
-            {/* 6. Dokumen Perencanaan */}
-            <button
-              onClick={() => handleNavClick('dokumen')}
-              className={`flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-left transition ${
-                activePage === 'dokumen'
-                  ? 'text-[#0f3d5c] font-bold bg-slate-50'
-                  : 'text-slate-800 hover:bg-slate-50'
-              }`}
-              id="mobile-nav-dokumen"
-            >
-              <span>Dokumen Perencanaan</span>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </button>
-
-            {/* 7. Layanan Accordion */}
+            {/* 6. Layanan Accordion */}
             <div className="border border-slate-100 rounded-lg overflow-hidden my-0.5">
               <button
                 onClick={() => setMobileExpandedSection(prev => prev === 'layanan' ? null : 'layanan')}

@@ -1,21 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { 
-  Sparkles, 
   FileText, 
   ArrowRight, 
   ShieldCheck, 
-  CheckCircle2, 
   Building2, 
   Play, 
   Pause, 
   Volume2, 
   VolumeX, 
-  Film
+  Film,
+  Clock,
+  MapPin
 } from 'lucide-react';
 import { ActivePage } from '../types';
 import { StorageService } from '../services/storage';
 import { VideoStorageService } from '../services/videoStorage';
+import { DeerSilhouette } from './DeerSilhouette';
 
 interface HeroBannerProps {
   setActivePage: (page: ActivePage) => void;
@@ -32,6 +33,8 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
   const [videoTitle, setVideoTitle] = useState<string>('Pusat Perumusan Kebijakan & Pengendalian Pembangunan Wilayah Anim Ha');
   const [videoLocation, setVideoLocation] = useState<string>('Salor, Merauke — 4 Kabupaten (Merauke, Boven Digoel, Mappi, Asmat)');
   const [isCustomVideo, setIsCustomVideo] = useState<boolean>(false);
+  const [officeHours, setOfficeHours] = useState<string>('Jam 08.00 Pagi s/d 16.00 Sore WIT (Senin – Jumat)');
+  const [officeAddress, setOfficeAddress] = useState<string>('Kompleks Pusat Pemerintahan Terpadu Pemerintah Provinsi Papua Selatan, Salor, Distrik Kurik, Kabupaten Merauke, Papua Selatan 99616');
 
   const cardVideoRef = useRef<HTMLVideoElement>(null);
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -41,6 +44,8 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
     const settings = StorageService.getAgencySettings();
     if (settings.heroVideoTitle) setVideoTitle(settings.heroVideoTitle);
     if (settings.heroVideoLocation) setVideoLocation(settings.heroVideoLocation);
+    if (settings.officeAddress) setOfficeAddress(settings.officeAddress);
+    if (settings.officeHours) setOfficeHours(settings.officeHours);
 
     // Prioritaskan URL berkas di server Hostinger jika ada
     if (settings.heroVideoServerUrl) {
@@ -98,14 +103,14 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
   return (
     <section 
       id="hero-main-section"
-      className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4"
+      className="w-full"
     >
-      {/* Container Card dengan Skala Terukur & Bentuk Framed yang Jelas */}
+      {/* Hero Banner Memanjang Kiri dan Kanan Penuh (Full-Width Edge-to-Edge) */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-        className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#092233] via-[#0f3d5c] to-[#154e74] text-white border border-white/20"
+        className="w-full relative overflow-hidden bg-gradient-to-br from-[#092233] via-[#0f3d5c] to-[#154e74] text-white border-b border-white/10 xl:min-h-[540px] 2xl:min-h-[600px] flex flex-col justify-center"
       >
         {/* 1. Cinematic Background Video Layer dengan Animasi Masuk Pertama */}
         <motion.div 
@@ -132,8 +137,16 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
         {/* Pattern dots overlay */}
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:22px_22px] opacity-10 pointer-events-none z-1"></div>
 
-        {/* Content Container dengan Skala Proporsional & Rapi */}
-        <div className="p-6 sm:p-8 lg:p-10 relative z-10">
+        {/* Siluet Hewan Rusa (Rusa Merauke) di Sebelah Kanan Hero */}
+        <div 
+          className="absolute right-0 sm:right-6 md:right-12 lg:right-20 bottom-0 pointer-events-none z-2 select-none opacity-20 sm:opacity-25 transform translate-y-3"
+          aria-hidden="true"
+        >
+          <DeerSilhouette className="w-56 h-56 sm:w-72 sm:h-72 lg:w-96 lg:h-96 xl:w-[440px] xl:h-[440px] text-amber-300" />
+        </div>
+
+        {/* Content Container dengan Skala Proporsional & Rapi (Widescreen Centered) */}
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-10 sm:py-14 lg:py-16 pb-16 sm:pb-20 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             
             {/* SISI KIRI: Teks & Aksi Utama (Animasi Masuk Bertahap) */}
@@ -143,15 +156,15 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
               transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
               className="lg:col-span-7 space-y-5"
             >
-              {/* Badge Portal */}
+              {/* Badge Portal / Highlight */}
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.15 }}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs border border-white/20 text-xs font-semibold text-amber-300"
+                className="inline-flex items-center text-xs sm:text-sm font-semibold text-amber-300 tracking-wide"
+                id="hero-highlight-badge"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Portal Resmi Perencanaan, Riset & Inovasi Daerah</span>
+                <span>Selamat Datang di Portal Resmi</span>
               </motion.div>
 
               {/* Headline Title dengan Skala Kompak */}
@@ -161,13 +174,38 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
                 transition={{ duration: 0.7, delay: 0.22 }}
                 className="space-y-2.5"
               >
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
-                  Perencanaan Terpadu, <br className="hidden sm:block" />
-                  <span className="text-amber-400">Riset & Inovasi</span> untuk Papua Selatan Maju
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight" id="hero-main-title">
+                  Badan Perencanaan Pembangunan, <br className="hidden sm:block" />
+                  Riset Dan Inovasi Daerah <br className="hidden sm:block" />
+                  <span className="text-amber-400">Provinsi Papua Selatan</span>
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-200 max-w-xl leading-relaxed">
-                  Mewujudkan tata kelola perencanaan pembangunan daerah yang transparan, berbasis data, dan adaptif terhadap kearifan lokal di 4 Kabupaten: <strong>Merauke, Boven Digoel, Mappi,</strong> dan <strong>Asmat</strong>.
+                  Mewujudkan tata kelola perencanaan pembangunan daerah yang transparan, terpadu, berbasis riset dan inovasi di 4 Kabupaten: <strong>Merauke, Boven Digoel, Mappi,</strong> dan <strong>Asmat</strong>.
                 </p>
+              </motion.div>
+
+              {/* Informasi Waktu Pelayanan & Alamat Kantor */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.28 }}
+                className="bg-slate-900/60 backdrop-blur-md border border-white/15 rounded-xl p-3 sm:p-3.5 space-y-2 max-w-xl shadow-inner text-xs sm:text-sm"
+                id="hero-service-hours-address"
+              >
+                <div className="flex items-start gap-2.5">
+                  <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="leading-snug">
+                    <span className="font-semibold text-amber-300">Waktu Pelayanan: </span>
+                    <span className="text-slate-200">{officeHours}</span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 pt-2 border-t border-white/10">
+                  <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="leading-snug">
+                    <span className="font-semibold text-amber-300">Alamat Kantor: </span>
+                    <span className="text-slate-200">{officeAddress}</span>
+                  </div>
+                </div>
               </motion.div>
 
               {/* Action Buttons */}
@@ -195,27 +233,6 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
                   <ShieldCheck className="w-4 h-4 text-amber-400" />
                   <span>Sampaikan Pengaduan</span>
                 </button>
-              </motion.div>
-
-              {/* Verified Badges */}
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.45 }}
-                className="pt-3 border-t border-white/15 grid grid-cols-3 gap-2 text-[11px] sm:text-xs text-slate-300"
-              >
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>RPJPD 2025–2045</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Keterbukaan PPID</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>SP4N Terintegrasi</span>
-                </div>
               </motion.div>
             </motion.div>
 
@@ -260,8 +277,8 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
                   </div>
                 </div>
 
-                {/* Video Player Display dengan Proporsi Terukur (Aspect 16:10) */}
-                <div className="aspect-16/10 w-full relative overflow-hidden bg-slate-950">
+                {/* Video Player Display dengan Proporsi Terukur (Aspect 16:9) */}
+                <div className="aspect-video w-full relative overflow-hidden bg-slate-950">
                   <video
                     ref={cardVideoRef}
                     src={videoSrc}

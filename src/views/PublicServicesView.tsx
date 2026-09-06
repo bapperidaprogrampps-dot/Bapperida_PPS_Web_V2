@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { StorageService } from '../services/storage';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../components/ScrollAnimations';
+import { PageHeaderBanner } from '../components/PageHeaderBanner';
 
 export function PublicServicesView() {
   const [applicantName, setApplicantName] = useState('');
@@ -92,22 +93,17 @@ Tanda Tangan Pemohon :
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Header Banner */}
-      <ScrollReveal variant="fade-up" duration={0.6}>
-        <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl">
-          <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-widest mb-1">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Layanan Informasi Publik (PPID)</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Layanan PPID & Keterbukaan Informasi
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-3xl leading-relaxed">
-            Pejabat Pengelola Informasi dan Dokumentasi (PPID) Pelaksana Bapperida Provinsi Papua Selatan melayani hak masyarakat untuk memperoleh informasi perencanaan pembangunan secara cepat, tepat waktu, dan berbiaya ringan.
-          </p>
-        </div>
-      </ScrollReveal>
+    <div className="w-full pb-16 space-y-8">
+      {/* Header Banner - Full Width Kiri & Kanan Mentok dengan Siluet Rusa di Sebelah Kanan */}
+      <PageHeaderBanner
+        badgeIcon={<ShieldCheck className="w-4 h-4" />}
+        badgeText="Layanan Informasi Publik (PPID)"
+        title="Layanan PPID & Keterbukaan Informasi"
+        description="Pejabat Pengelola Informasi dan Dokumentasi (PPID) Pelaksana Bapperida Provinsi Papua Selatan melayani hak masyarakat untuk memperoleh informasi perencanaan pembangunan secara cepat, tepat waktu, dan berbiaya ringan."
+      />
+
+      {/* Main Content Area - Boxed */}
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-8">
 
       {/* Maklumat Pelayanan */}
       <ScrollReveal variant="fade-up" duration={0.6} delay={0.05}>
@@ -347,6 +343,7 @@ Tanda Tangan Pemohon :
           </form>
         </div>
       </ScrollReveal>
+      </div>
     </div>
   );
 }

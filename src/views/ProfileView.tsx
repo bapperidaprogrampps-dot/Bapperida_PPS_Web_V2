@@ -15,50 +15,46 @@ import {
 import { PapuaSelatanLogo, BapperidaLogo } from '../components/Logos';
 import { StorageService } from '../services/storage';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../components/ScrollAnimations';
+import { PageHeaderBanner } from '../components/PageHeaderBanner';
 
 export function ProfileView() {
   const [activeTab, setActiveTab] = useState<'visi-misi' | 'sejarah' | 'tupoksi' | 'struktur' | 'pimpinan'>('visi-misi');
   const agencySettings = StorageService.getAgencySettings();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Breadcrumb & Header */}
-      <ScrollReveal variant="fade-up" duration={0.6}>
-        <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl">
-          <span className="text-xs font-semibold text-amber-300 uppercase tracking-widest block mb-1">
-            Tentang Instansi
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Profil Bapperida Provinsi Papua Selatan
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-3xl leading-relaxed">
-            Badan Perencanaan Pembangunan Daerah, Riset dan Inovasi Daerah (Bapperida) Provinsi Papua Selatan merupakan unsur penunjang urusan pemerintahan bidang perencanaan dan kelitbangan yang menjadi kewenangan daerah provinsi baru di kawasan Anim Ha.
-          </p>
-
-          {/* Tab Buttons */}
-          <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-1 text-xs">
-            {[
-              { id: 'visi-misi', label: 'Visi & Misi' },
-              { id: 'sejarah', label: 'Sejarah & Dasar Hukum' },
-              { id: 'tupoksi', label: 'Tugas Pokok & Fungsi' },
-              { id: 'struktur', label: 'Struktur Organisasi' },
-              { id: 'pimpinan', label: 'Profil Pimpinan' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition cursor-pointer ${
-                  activeTab === tab.id
-                    ? 'bg-amber-400 text-slate-950'
-                    : 'bg-white/10 hover:bg-white/20 text-white'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+    <div className="w-full pb-16 space-y-8">
+      {/* Header Banner - Full Width Kiri & Kanan Mentok dengan Siluet Rusa di Sebelah Kanan */}
+      <PageHeaderBanner
+        badgeText="Tentang Instansi"
+        title="Profil Bapperida Provinsi Papua Selatan"
+        description="Badan Perencanaan Pembangunan Daerah, Riset dan Inovasi Daerah (Bapperida) Provinsi Papua Selatan merupakan unsur penunjang urusan pemerintahan bidang perencanaan dan kelitbangan yang menjadi kewenangan daerah provinsi baru di kawasan Anim Ha."
+      >
+        {/* Tab Buttons */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+          {[
+            { id: 'visi-misi', label: 'Visi & Misi' },
+            { id: 'sejarah', label: 'Sejarah & Dasar Hukum' },
+            { id: 'tupoksi', label: 'Tugas Pokok & Fungsi' },
+            { id: 'struktur', label: 'Struktur Organisasi' },
+            { id: 'pimpinan', label: 'Profil Pimpinan' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition cursor-pointer ${
+                activeTab === tab.id
+                  ? 'bg-amber-400 text-slate-950 font-bold shadow-xs'
+                  : 'bg-white/10 hover:bg-white/20 text-white'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
-      </ScrollReveal>
+      </PageHeaderBanner>
+
+      {/* Main Content Area - Boxed */}
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-8">
 
       {/* Tab 1: Visi & Misi */}
       {activeTab === 'visi-misi' && (
@@ -449,6 +445,7 @@ export function ProfileView() {
           </div>
         </ScrollReveal>
       )}
+      </div>
     </div>
   );
 }

@@ -435,7 +435,7 @@ export const defaultAgencySettings: import('../types').AgencySettings = {
   officeAddress: 'Kompleks Pusat Pemerintahan Terpadu Pemerintah Provinsi Papua Selatan, Salor, Distrik Kurik, Kabupaten Merauke, Papua Selatan 99616',
   officeEmail: 'bapperidaprogram.pps@gmail.com',
   officePhone: '(0971) 321-450 / 0811-482-9900',
-  officeHours: 'Senin – Jumat: 08.00 – 16.00 WIT',
+  officeHours: 'Jam 08.00 Pagi s/d 16.00 Sore WIT (Senin – Jumat)',
   musrenbangUrl: 'https://musrenbang.papuaselatanprov.go.id',
   sipdUrl: 'https://sipd-ri.kemendagri.go.id',
   satuDataUrl: 'https://satudata.papuaselatanprov.go.id'

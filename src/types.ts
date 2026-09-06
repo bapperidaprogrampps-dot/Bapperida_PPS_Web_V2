@@ -49,6 +49,7 @@ export interface PlanningDocument {
   uploadDate: string;
   description: string;
   fileUrl?: string; // URL berkas di server Hostinger (misal /uploads/documents/rpjpd.pdf)
+  coverImage?: string; // URL cover buku untuk tampilan perpustakaan
   storageProvider?: 'hostinger-server' | 'hostinger-php' | 'external' | 'local';
 }
 

@@ -13,6 +13,7 @@ import {
 import { regenciesData } from '../data/mockData';
 import { StorageService } from '../services/storage';
 import { IndicatorStat } from '../types';
+import { PageHeaderBanner } from '../components/PageHeaderBanner';
 
 export function StatisticsView() {
   const [selectedMetric, setSelectedMetric] = useState<'ipm' | 'growth' | 'poverty' | 'unemployment'>('ipm');
@@ -58,20 +59,17 @@ export function StatisticsView() {
   const minVal = Math.min(...currentConfig.data.map(d => d.val)) * 0.85;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl">
-        <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-widest mb-1">
-          <BarChart3 className="w-4 h-4" />
-          <span>Satu Data Papua Selatan</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Data & Statistik Indikator Pembangunan Daerah
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-3xl leading-relaxed">
-          Statistik makro ekonomi, capaian Indeks Pembangunan Manusia (IPM), profil kemiskinan, dan data komparasi empat kabupaten di Provinsi Papua Selatan.
-        </p>
-      </div>
+    <div className="w-full pb-16 space-y-8">
+      {/* Header Banner - Full Width Kiri & Kanan Mentok dengan Siluet Rusa di Sebelah Kanan */}
+      <PageHeaderBanner
+        badgeIcon={<BarChart3 className="w-4 h-4" />}
+        badgeText="Satu Data Papua Selatan"
+        title="Data & Statistik Indikator Pembangunan Daerah"
+        description="Statistik makro ekonomi, capaian Indeks Pembangunan Manusia (IPM), profil kemiskinan, dan data komparasi empat kabupaten di Provinsi Papua Selatan."
+      />
+
+      {/* Main Content Area - Boxed */}
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-8">
 
       {/* Metric Selector Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -198,6 +196,7 @@ export function StatisticsView() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { NewsArticle } from '../types';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../components/ScrollAnimations';
+import { PageHeaderBanner } from '../components/PageHeaderBanner';
 
 interface NewsViewProps {
   articles: NewsArticle[];
@@ -37,22 +38,17 @@ export function NewsView({ articles, onSelectArticle }: NewsViewProps) {
   const featuredArticle = articles[0];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Header Banner */}
-      <ScrollReveal variant="fade-up" duration={0.6}>
-        <div className="bg-[#0f3d5c] text-white p-6 sm:p-8 rounded-2xl">
-          <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-widest mb-1">
-            <Newspaper className="w-4 h-4" />
-            <span>Kanal Berita & Siaran Pers</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Publikasi Berita & Dokumentasi Kegiatan
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-3xl leading-relaxed">
-            Kilas berita seputar perencanaan pembangunan wilayah, perkembangan riset dan inovasi daerah, serta agenda Pemprov Papua Selatan.
-          </p>
-        </div>
-      </ScrollReveal>
+    <div className="w-full pb-16 space-y-8">
+      {/* Header Banner - Full Width Kiri & Kanan Mentok dengan Siluet Rusa di Sebelah Kanan */}
+      <PageHeaderBanner
+        badgeIcon={<Newspaper className="w-4 h-4" />}
+        badgeText="Kanal Berita & Siaran Pers"
+        title="Publikasi Berita & Dokumentasi Kegiatan"
+        description="Kilas berita seputar perencanaan pembangunan wilayah, perkembangan riset dan inovasi daerah, serta agenda Pemprov Papua Selatan."
+      />
+
+      {/* Main Content Area - Boxed */}
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-8">
 
       {/* Featured News Hero (if no search and viewing 'Semua') */}
       {!searchQuery && selectedCategory === 'Semua' && featuredArticle && (
@@ -185,6 +181,7 @@ export function NewsView({ articles, onSelectArticle }: NewsViewProps) {
           </StaggerItem>
         ))}
       </StaggerContainer>
+      </div>
     </div>
   );
 }

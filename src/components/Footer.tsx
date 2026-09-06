@@ -13,7 +13,6 @@ import {
   LogOut 
 } from 'lucide-react';
 import { ActivePage } from '../types';
-import { BapperidaLogo, PapuaSelatanLogo } from './Logos';
 
 interface FooterProps {
   setActivePage: (page: ActivePage) => void;
@@ -28,33 +27,12 @@ export function Footer({ setActivePage, isAdmin, onLogout }: FooterProps) {
   };
 
   return (
-    <footer className="bg-[#0a2335] text-slate-300 border-t-4 border-amber-500">
-      {/* 4 Kabupaten Banner Bar */}
-      <div className="bg-[#081b2a] border-b border-slate-700/60 py-3.5 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-            <span className="font-semibold text-white">Wilayah Kerja Perencanaan Pembangunan Provinsi Papua Selatan:</span>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center font-medium text-slate-200">
-            <span className="px-2.5 py-1 bg-white/5 rounded border border-white/10">Kabupaten Merauke</span>
-            <span className="px-2.5 py-1 bg-white/5 rounded border border-white/10">Kabupaten Boven Digoel</span>
-            <span className="px-2.5 py-1 bg-white/5 rounded border border-white/10">Kabupaten Mappi</span>
-            <span className="px-2.5 py-1 bg-white/5 rounded border border-white/10">Kabupaten Asmat</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Footer Body */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-[#0a2335] text-slate-300">
+      {/* Main Footer Body - Ramping & Tanpa Logo */}
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Col 1: Instansi Brand */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <PapuaSelatanLogo className="h-12 w-auto" />
-              <div className="h-10 w-px bg-slate-600"></div>
-              <BapperidaLogo className="h-10 w-auto" showText={false} />
-            </div>
+          <div className="space-y-2">
             <div>
               <h3 className="text-white font-bold text-base leading-tight">
                 BAPPERIDA
@@ -62,21 +40,21 @@ export function Footer({ setActivePage, isAdmin, onLogout }: FooterProps) {
               <p className="text-amber-400 font-semibold text-xs tracking-wider">
                 PROVINSI PAPUA SELATAN
               </p>
-              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                Badan Perencanaan Pembangunan Daerah, Riset dan Inovasi Daerah bertugas menyelenggarakan koordinasi perumusan kebijakan perencanaan makro, evaluasi pembangunan, dan penguatan ekosistem riset inovasi di bumi Anim Ha.
+              <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                Badan Perencanaan Pembangunan Daerah, Riset dan Inovasi Daerah bertugas menyelenggarakan koordinasi perumusan kebijakan perencanaan makro, evaluasi pembangunan, dan riset inovasi di bumi Anim Ha.
               </p>
             </div>
-            <div className="text-xs text-slate-400">
-              Dasar Hukum Pembentukan: <span className="text-slate-200 font-medium">UU RI No. 14 Tahun 2022</span>
+            <div className="text-[11px] text-slate-400">
+              Dasar Hukum: <span className="text-slate-200 font-medium">UU RI No. 14 Tahun 2022</span>
             </div>
           </div>
 
           {/* Col 2: Tautan Dokumen & Layanan */}
           <div>
-            <h4 className="text-white font-bold text-sm mb-4 border-b border-amber-500/50 pb-1.5 inline-block">
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-2.5 border-b border-amber-500/50 pb-1 inline-block">
               Dokumen Perencanaan
             </h4>
-            <ul className="space-y-2.5 text-xs">
+            <ul className="space-y-1.5 text-xs">
               <li>
                 <button 
                   onClick={() => handleNav('dokumen')} 
@@ -127,17 +105,17 @@ export function Footer({ setActivePage, isAdmin, onLogout }: FooterProps) {
 
           {/* Col 3: Layanan Publik & Pengaduan */}
           <div>
-            <h4 className="text-white font-bold text-sm mb-4 border-b border-amber-500/50 pb-1.5 inline-block">
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-2.5 border-b border-amber-500/50 pb-1 inline-block">
               Layanan Publik & Regulasi
             </h4>
-            <ul className="space-y-2.5 text-xs">
+            <ul className="space-y-1.5 text-xs">
               <li>
                 <button 
                   onClick={() => handleNav('layanan')} 
                   className="hover:text-amber-400 transition text-left flex items-center gap-1.5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Layanan PPID (Permohonan Informasi)</span>
+                  <span>Layanan PPID (Permohonan Info)</span>
                 </button>
               </li>
               <li>
@@ -183,26 +161,26 @@ export function Footer({ setActivePage, isAdmin, onLogout }: FooterProps) {
 
           {/* Col 4: Alamat & Kontak Resmi */}
           <div>
-            <h4 className="text-white font-bold text-sm mb-4 border-b border-amber-500/50 pb-1.5 inline-block">
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-2.5 border-b border-amber-500/50 pb-1 inline-block">
               Sekretariat Kantor
             </h4>
-            <div className="space-y-3 text-xs">
+            <div className="space-y-2 text-xs">
               <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>
-                  Kompleks Pusat Pemerintahan Terpadu Pemerintah Provinsi Papua Selatan, Salor, Distrik Kurik, Kabupaten Merauke, Provinsi Papua Selatan
+                <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span className="leading-snug">
+                  Pusat Pemerintahan Terpadu Pemprov Papua Selatan, Salor, Distrik Kurik, Merauke
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-amber-400 shrink-0" />
-                <span className="text-amber-300 font-mono">bapperidaprogram.pps@gmail.com</span>
+                <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="text-amber-300 font-mono text-[11px]">bapperidaprogram.pps@gmail.com</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-amber-400 shrink-0" />
+                <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>(0971) 321-789 / 0812-4800-2022</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>Senin – Jumat : 08.00 – 16.00 WIT</span>
               </div>
             </div>
@@ -210,15 +188,15 @@ export function Footer({ setActivePage, isAdmin, onLogout }: FooterProps) {
         </div>
 
         {/* Bottom copyright line with bottom-right admin access */}
-        <div className="mt-12 pt-6 border-t border-slate-700/80 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-4">
-          <p className="text-center md:text-left">
+        <div className="mt-6 pt-4 border-t border-slate-700/80 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-3">
+          <p className="text-center md:text-left text-[11px] sm:text-xs">
             © 2026 Badan Perencanaan Pembangunan Daerah, Riset dan Inovasi Daerah (Bapperida) Provinsi Papua Selatan. Seluruh hak cipta dilindungi.
           </p>
           
-          <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-4">
-            <button onClick={() => handleNav('profil')} className="hover:text-white transition cursor-pointer">Visi & Misi</button>
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2.5 sm:gap-3">
+            <button onClick={() => handleNav('profil')} className="hover:text-white transition cursor-pointer text-[11px] sm:text-xs">Visi & Misi</button>
             <span className="text-slate-600">•</span>
-            <button onClick={() => handleNav('layanan')} className="hover:text-white transition cursor-pointer">Maklumat Pelayanan</button>
+            <button onClick={() => handleNav('layanan')} className="hover:text-white transition cursor-pointer text-[11px] sm:text-xs">Maklumat Pelayanan</button>
             <span className="text-slate-600">•</span>
             
             {/* Pojok Kanan Bawah: Akses Administrator */}
