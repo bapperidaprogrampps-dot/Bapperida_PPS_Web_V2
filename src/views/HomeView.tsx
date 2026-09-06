@@ -61,151 +61,102 @@ export function HomeView({
 
       {/* 2. Kata Sambutan Kepala Badan */}
       <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10" id="sambutan-kepala-badan">
-        <ScrollReveal variant="fade-up" duration={0.75} distance={30}>
-          <div className="bg-gradient-to-br from-white via-slate-50/80 to-amber-50/30 rounded-2xl overflow-hidden">
+        <ScrollReveal variant="fade-up" duration={0.6} distance={20}>
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div className="p-6 sm:p-8 lg:p-10">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
                 
-                {/* Left Column: Foto Profil & Identitas Pimpinan (Slide-in dari kiri) */}
-                <ScrollReveal variant="fade-right" duration={0.8} delay={0.1} className="lg:col-span-4 flex flex-col items-center">
-                  <div className="relative group max-w-[280px] sm:max-w-[320px] w-full">
-                    {/* Outer Accent Border */}
-                    <div className="absolute -inset-1 bg-gradient-to-tr from-amber-400 via-[#0f3d5c] to-amber-500 rounded-2xl opacity-60 group-hover:opacity-90 transition duration-500"></div>
-                    
-                    <div className="relative rounded-xl overflow-hidden bg-white border-2 border-white">
+                {/* Left Column: Foto Profil & Identitas Pimpinan */}
+                <div className="lg:col-span-4 flex flex-col items-center">
+                  <div className="w-full max-w-[260px] sm:max-w-[290px] flex flex-col items-center">
+                    {/* Clean Frame Foto */}
+                    <div className="w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xs relative">
                       <img
                         src={settings.leaderPhoto}
                         alt={`Foto Profil ${settings.leaderName}`}
-                        className="w-full aspect-[3/4] object-cover object-top filter contrast-[1.02] brightness-[1.01]"
+                        className="w-full aspect-[3/4] object-cover object-top"
                         referrerPolicy="no-referrer"
                       />
+                    </div>
 
-                      {/* Badge Overlay at Top */}
-                      <div className="absolute top-3 left-3">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#0f3d5c]/90 text-amber-300 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider border border-white/20">
-                          <Award className="w-3 h-3 text-amber-400" />
-                          <span>Pimpinan Tinggi Pratama</span>
-                        </span>
-                      </div>
-
-                      {/* Gradient Overlay at Bottom with Name & Title */}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0b283d] via-[#0b283d]/90 to-transparent pt-10 pb-4 px-4 text-white text-center">
-                        <h3 className="font-bold text-base sm:text-lg leading-tight text-white">
-                          {settings.leaderName}
-                        </h3>
-                        <p className="text-[11px] text-amber-300 font-semibold mt-1">
-                          {settings.leaderTitle}
+                    {/* Identitas Pimpinan di Bawah Foto (Jelas & Rapi) */}
+                    <div className="text-center mt-3.5 w-full space-y-1">
+                      <h3 className="font-bold text-base sm:text-lg text-slate-900 leading-snug">
+                        {settings.leaderName}
+                      </h3>
+                      <p className="text-xs font-semibold text-amber-600">
+                        {settings.leaderTitle}
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        {settings.leaderRank}
+                      </p>
+                      {settings.leaderMotto && (
+                        <p className="text-xs italic text-slate-600 mt-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-100 leading-relaxed">
+                          &ldquo;{settings.leaderMotto}&rdquo;
                         </p>
-                        <p className="text-[10px] text-slate-300 mt-0.5">
-                          {settings.leaderRank}
-                        </p>
-                      </div>
+                      )}
                     </div>
                   </div>
+                </div>
 
-                  {/* Sub-badge: Kutipan Visi Singkat */}
-                  <div className="mt-4 p-3.5 bg-white rounded-xl text-center w-full max-w-[280px] sm:max-w-[320px]">
-                    <div className="flex items-center justify-center gap-1.5 text-amber-600 text-xs font-bold mb-1">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Motto Kepemimpinan</span>
-                    </div>
-                    <p className="text-[11px] text-slate-600 italic leading-relaxed">
-                      &ldquo;{settings.leaderMotto}&rdquo;
-                    </p>
-                  </div>
-                </ScrollReveal>
-
-                {/* Right Column: Isi Kata Sambutan Lengkap (Slide-in dari kanan) */}
-                <ScrollReveal variant="fade-left" duration={0.8} delay={0.2} className="lg:col-span-8 space-y-5">
-                  <div className="space-y-2">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0f3d5c]/10 text-[#0f3d5c] border border-[#0f3d5c]/20 text-xs font-bold">
-                      <Quote className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Kata Sambutan Kepala Badan</span>
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0f3d5c] tracking-tight leading-snug">
+                {/* Right Column: Tampilan Tulisan Sambutan (Sederhana, Bersih & Nyaman Dibaca) */}
+                <div className="lg:col-span-8 space-y-4">
+                  {/* Header Sambutan */}
+                  <div className="border-b border-slate-100 pb-3 space-y-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
+                      Kata Sambutan Kepala Badan
+                    </span>
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#0f3d5c] tracking-tight leading-snug">
                       {settings.speechTitle}
                     </h2>
-                    <div className="h-1 w-20 bg-amber-500 rounded-full"></div>
                   </div>
 
-                  <div className="space-y-3.5 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                    <p className="font-semibold text-slate-900 text-sm">
+                  {/* Isi Teks Sambutan yang Sederhana & Nyaman */}
+                  <div className="space-y-3.5 text-sm sm:text-base text-slate-700 leading-relaxed">
+                    <p className="font-semibold text-slate-900 text-sm sm:text-base">
                       {settings.speechOpening}
                     </p>
                     
-                    <p>
+                    <p className="whitespace-pre-line text-slate-600 text-sm sm:text-base leading-relaxed">
                       {settings.speechBody}
                     </p>
 
-                    <p>
+                    <p className="text-slate-800 text-sm sm:text-base font-medium">
                       {settings.speechClosing}
                     </p>
                   </div>
 
-                  {/* 3 Value Pillars */}
-                  <StaggerContainer staggerDelay={0.1} className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                    <StaggerItem variant="fade-up" className="p-3 bg-white rounded-lg border border-slate-200">
-                      <div className="flex items-center gap-2 text-xs font-bold text-[#0f3d5c] mb-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>RPJPD 2025–2045</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 leading-normal">
-                        Pondasi transformasi ekonomi hijau, lumbung pangan nasional, dan SDM unggul.
-                      </p>
-                    </StaggerItem>
-
-                    <StaggerItem variant="fade-up" className="p-3 bg-white rounded-lg border border-slate-200">
-                      <div className="flex items-center gap-2 text-xs font-bold text-[#0f3d5c] mb-1">
-                        <Microscope className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Riset & Inovasi (BRIDA)</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 leading-normal">
-                        Hilirisasi komoditas sagu, pertanian pangan, dan inovasi berbasis ekosistem lokal.
-                      </p>
-                    </StaggerItem>
-
-                    <StaggerItem variant="fade-up" className="p-3 bg-white rounded-lg border border-slate-200">
-                      <div className="flex items-center gap-2 text-xs font-bold text-[#0f3d5c] mb-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Keterbukaan Publik</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 leading-normal">
-                        Transparansi dokumen publik PPID dan keterlibatan aspirasi warga secara real-time.
-                      </p>
-                    </StaggerItem>
-                  </StaggerContainer>
-
-                  {/* Bottom Signature Info & Buttons */}
-                  <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  {/* Bagian Penandatangan & Aksi Cepat */}
+                  <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <span className="text-xs text-slate-500 font-medium block">
-                        Salor, Merauke — Papua Selatan
-                      </span>
-                      <span className="text-xs font-bold text-slate-900">
+                      <span className="text-xs font-bold text-slate-900 block">
                         Bapperida Provinsi Papua Selatan
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        Salor, Merauke — Papua Selatan
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2.5 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={() => setActivePage('profil')}
-                        className="px-3.5 py-2 text-xs font-bold text-[#0f3d5c] hover:text-white bg-white hover:bg-[#0f3d5c] border border-slate-300 hover:border-[#0f3d5c] rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                        className="px-4 py-2 text-xs font-semibold text-[#0f3d5c] hover:bg-slate-50 border border-slate-200 rounded-lg transition flex items-center gap-1.5 cursor-pointer"
                         id="sambutan-profil-btn"
                       >
                         <Award className="w-3.5 h-3.5 text-amber-500" />
-                        <span>Profil Lengkap Lembaga</span>
+                        <span>Profil Lengkap</span>
                       </button>
                       <button
                         onClick={() => setActivePage('dokumen')}
-                        className="px-3.5 py-2 text-xs font-bold text-white bg-[#0f3d5c] hover:bg-[#154e74] rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                        className="px-4 py-2 text-xs font-semibold text-white bg-[#0f3d5c] hover:bg-[#154e74] rounded-lg transition flex items-center gap-1.5 cursor-pointer"
                         id="sambutan-dokumen-btn"
                       >
-                        <span>Arah Kebijakan RPJPD</span>
+                        <span>Dokumen Perencanaan</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
-                </ScrollReveal>
+                </div>
 
               </div>
             </div>

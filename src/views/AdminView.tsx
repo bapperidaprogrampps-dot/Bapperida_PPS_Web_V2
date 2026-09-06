@@ -177,7 +177,7 @@ export function AdminView({
       items: [
         { id: 'pegawai', label: 'Profil Pegawai', icon: Users, badge: employees.length },
         { id: 'video-beranda', label: 'Unggah Video Beranda', icon: Film, badge: 'Admin' },
-        { id: 'sambutan', label: 'Profil & Sambutan Pimpinan', icon: Award, badge: null },
+        { id: 'sambutan', label: 'Foto & Sambutan Pimpinan', icon: Award, badge: 'Edit Foto' },
         { id: 'indikator', label: 'Indikator Makro Pembangunan', icon: TrendingUp, badge: null },
         { id: 'instansi', label: 'Pengaturan Umum & Kontak', icon: Sliders, badge: null },
       ]
