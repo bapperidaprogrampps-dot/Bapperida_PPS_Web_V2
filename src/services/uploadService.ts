@@ -184,50 +184,85 @@ export const UploadService = {
     formData.append('file', file);
     formData.append('category', category);
 
+    // Coba kirimkan ke endpoint server
+    let lastError: any = null;
+
+    // 1. Coba endpoint utama sesuai konfigurasi
     try {
-      const response = await fetch(uploadEndpoint, {
-        method: 'POST',
-        body: formData
-      });
+      const result = await this.tryUploadEndpoint(uploadEndpoint, formData, file, category, config.provider);
+      return result;
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`Percobaan upload ke ${uploadEndpoint} gagal:`, err.message);
+    }
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.url) {
-          return {
-            success: true,
-            url: data.url,
-            filename: data.filename || file.name,
-            originalName: data.originalName || file.name,
-            category,
-            size: file.size,
-            sizeFormatted: data.sizeFormatted || sizeFormatted,
-            mimetype: data.mimetype || file.type,
-            storage: config.provider === 'hostinger-php' ? 'hostinger-php' : 'hostinger-server',
-            uploadedAt: data.uploadedAt || new Date().toISOString(),
-            message: data.message || `Berkas berhasil disimpan di server Hostinger (${data.url})`
-          };
-        } else {
-          throw new Error(data.error || 'Respon server tidak mengembalikan URL berkas yang valid');
-        }
+    // 2. Jika gagal dan menggunakan endpoint Node.js (/api/upload), coba otomatis ke PHP handler (/api-hostinger/upload.php) untuk Hostinger Shared Hosting
+    if (uploadEndpoint === '/api/upload') {
+      try {
+        console.info('Mencoba endpoint alternatif Hostinger PHP (/api-hostinger/upload.php)...');
+        const phpResult = await this.tryUploadEndpoint('/api-hostinger/upload.php', formData, file, category, 'hostinger-php');
+        // Jika sukses lewat PHP, otomatis simpan konfigurasi ke hostinger-php
+        this.saveStorageConfig({ provider: 'hostinger-php' });
+        return phpResult;
+      } catch (phpErr: any) {
+        lastError = phpErr;
+        console.warn('Percobaan endpoint PHP juga gagal:', phpErr.message);
+      }
+    }
+
+    // 3. Jika kedua backend server belum aktif atau gagal izin folder, gunakan fallback offline (IndexedDB / Base64 Data URL)
+    if (config.autoFallbackToIndexedDb) {
+      console.info('Mengaktifkan fallback penyimpanan lokal (DataURL) agar pengguna tetap bisa mengunggah foto...');
+      return this.handleOfflineFallback(file, category);
+    }
+
+    throw lastError || new Error('Gagal mengunggah berkas ke server Hostinger');
+  },
+
+  /**
+   * Helper untuk mencoba request upload ke endpoint tertentu
+   */
+  async tryUploadEndpoint(
+    endpoint: string,
+    formData: FormData,
+    file: File,
+    category: 'documents' | 'images' | 'videos' | 'general',
+    providerName: string
+  ): Promise<UploadResult> {
+    const sizeFormatted = this.formatBytes(file.size);
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.url) {
+        return {
+          success: true,
+          url: data.url,
+          filename: data.filename || file.name,
+          originalName: data.originalName || file.name,
+          category,
+          size: file.size,
+          sizeFormatted: data.sizeFormatted || sizeFormatted,
+          mimetype: data.mimetype || file.type,
+          storage: providerName === 'hostinger-php' ? 'hostinger-php' : 'hostinger-server',
+          uploadedAt: data.uploadedAt || new Date().toISOString(),
+          message: data.message || `Berkas berhasil disimpan di server Hostinger (${data.url})`
+        };
       } else {
-        let errMessage = `Gagal mengunggah ke server (HTTP ${response.status})`;
-        try {
-          const errData = await response.json();
-          if (errData.error) errMessage = errData.error;
-        } catch {
-          // ignore
-        }
-        throw new Error(errMessage);
+        throw new Error(data.error || 'Server tidak mengembalikan URL berkas');
       }
-    } catch (networkError: any) {
-      console.warn('Gagal menghubungi endpoint server Hostinger:', networkError.message);
-
-      // Fallback ke penyimpanan offline / IndexedDB jika diizinkan
-      if (config.autoFallbackToIndexedDb) {
-        return this.handleOfflineFallback(file, category);
+    } else {
+      let errMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errData = await response.json();
+        if (errData.error) errMessage = errData.error;
+      } catch {
+        // ignore
       }
-
-      throw networkError;
+      throw new Error(errMessage);
     }
   },
 
