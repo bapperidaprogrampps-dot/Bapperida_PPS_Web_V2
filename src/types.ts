@@ -176,6 +176,8 @@ export interface AdminCredentials {
   name: string;
   role: string;
   lastPasswordChangedAt?: string;
+  isPasswordChanged?: boolean;
+  singleAdminOnly?: boolean;
 }
 
 export type EmployeePositionCategory = 'Kepala Badan' | 'Sekretaris' | 'Kasubag' | 'Kasubid' | 'Staff';

@@ -12,10 +12,13 @@ import {
   UserCheck, 
   Mail, 
   ShieldAlert, 
-  Info,
-  Check,
-  X,
-  Shield
+  Info, 
+  Check, 
+  X, 
+  Shield,
+  UserX,
+  Sparkles,
+  AlertTriangle
 } from 'lucide-react';
 import { StorageService } from '../../services/storage';
 
@@ -27,6 +30,7 @@ interface AdminSecurityTabProps {
 export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabProps) {
   const [currentCredentials, setCurrentCredentials] = useState(StorageService.getAdminCredentials());
   const [isCredsDisabled, setIsCredsDisabled] = useState(() => StorageService.isDefaultCredentialsDisabled());
+  const [isPasswordChanged, setIsPasswordChanged] = useState(() => StorageService.isPasswordChanged());
 
   // Form states
   const [oldPassword, setOldPassword] = useState('');
@@ -105,12 +109,15 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
       setIsSubmitting(false);
 
       if (res.success) {
-        setSuccessMessage('Kata sandi berhasil diperbarui! Kredensial baru telah aktif.');
-        showToast('Kata sandi berhasil diganti.');
+        setSuccessMessage('Kata sandi berhasil diperbarui! Sistem kini terkunci pada akun tunggal dengan kata sandi baru Anda.');
+        showToast('Kata sandi berhasil diubah & akses dikunci untuk 1 admin.');
         setOldPassword('');
         setNewPassword('');
         setConfirmPassword('');
-        setCurrentCredentials(StorageService.getAdminCredentials());
+        const freshCreds = StorageService.getAdminCredentials();
+        setCurrentCredentials(freshCreds);
+        setIsPasswordChanged(true);
+        setIsCredsDisabled(true);
         if (onDataChanged) onDataChanged();
       } else {
         setErrorMessage(res.message);
@@ -121,9 +128,12 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
   const handleResetToDefault = () => {
     const res = StorageService.resetAdminPasswordToDefault();
     setShowResetConfirmModal(false);
-    setCurrentCredentials(StorageService.getAdminCredentials());
+    const freshCreds = StorageService.getAdminCredentials();
+    setCurrentCredentials(freshCreds);
+    setIsPasswordChanged(false);
+    setIsCredsDisabled(false);
     showToast(res.message);
-    setSuccessMessage('Kata sandi telah dikembalikan ke sandi bawaan (BapperidaPPS#2025).');
+    setSuccessMessage('Kata sandi telah dikembalikan ke sandi awal bawaan sistem (BapperidaPPS#2025).');
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
@@ -136,50 +146,84 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
     setIsCredsDisabled(nextVal);
     showToast(
       nextVal
-        ? 'Kredensial default pada menu login administrator berhasil dinonaktifkan.'
-        : 'Kredensial default pada menu login administrator diaktifkan kembali.'
+        ? 'Bantuan kredensial di layar login dinonaktifkan.'
+        : 'Bantuan kredensial di layar login diaktifkan.'
     );
     if (onDataChanged) onDataChanged();
   };
 
   return (
     <div className="space-y-6">
-      {/* Header Section */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Manajemen Keamanan Akun & Kredensial</span>
-          </div>
-          <h2 className="text-xl font-black text-slate-900">
-            Pengaturan & Ganti Kata Sandi Administrator
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Perbarui kata sandi untuk menjamin keamanan akses pengisian portal resmi BAPPERIDA Papua Selatan.
-          </p>
-        </div>
+      {/* 1. Kebijakan & Pengaturan Hanya 1 Admin Banner */}
+      <div className="bg-gradient-to-r from-[#0b283d] via-[#0f3d5c] to-[#134b70] text-white p-6 sm:p-7 rounded-2xl border border-slate-700/60 shadow-lg relative overflow-hidden">
+        <div className="absolute -top-16 -right-16 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <button
-          type="button"
-          onClick={() => setShowResetConfirmModal(true)}
-          className="px-3.5 py-2 rounded-xl border border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-        >
-          <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
-          <span>Reset ke Sandi Bawaan</span>
-        </button>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-2 max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[11px] font-extrabold uppercase tracking-wider">
+              <Shield className="w-3.5 h-3.5 text-amber-400" />
+              <span>Kebijakan Keamanan: Hanya 1 Administrator (Single Admin Policy)</span>
+            </div>
+            
+            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              Pengaturan Akses Akun Tunggal & Proteksi Kata Sandi
+            </h2>
+            
+            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              Portal BAPPERIDA Papua Selatan menerapkan aturan ketat: <strong>Hanya ada 1 akun Administrator utama</strong>. Jika Anda mengubah kata sandi di bawah ini, sandi bawaan lama akan <strong>langsung dibatalkan secara permanen</strong>. Pengguna lain tidak akan bisa masuk selain menggunakan kata sandi baru yang telah Anda tentukan.
+            </p>
+          </div>
+
+          {/* Status Badge Container */}
+          <div className="shrink-0">
+            {isPasswordChanged ? (
+              <div className="bg-emerald-500/20 border border-emerald-400/40 px-4 py-3 rounded-xl backdrop-blur-xs space-y-1">
+                <div className="flex items-center gap-2 text-emerald-300 font-extrabold text-xs">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>TERKUNCI & TERPROTEKSI</span>
+                </div>
+                <p className="text-[11px] text-emerald-100/90 leading-tight">
+                  Sandi kustom aktif. Sandi bawaan lama telah hangus.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-amber-500/20 border border-amber-400/40 px-4 py-3 rounded-xl backdrop-blur-xs space-y-1">
+                <div className="flex items-center gap-2 text-amber-300 font-extrabold text-xs">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  <span>MASIH SANDI BAWAAN</span>
+                </div>
+                <p className="text-[11px] text-amber-100/90 leading-tight">
+                  Ubah kata sandi di bawah untuk mengunci akses 1 admin.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Form Ganti Password (7 cols) */}
         <div className="lg:col-span-7 bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 space-y-6">
-          <div className="border-b border-slate-100 pb-4">
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <KeyRound className="w-4 h-4 text-[#0f3d5c]" />
-              <span>Formulir Perubahan Kata Sandi</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Gunakan tanda mata di sebelah kanan kolom untuk memeriksa ketikan karakter kata sandi Anda.
-            </p>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-[#0f3d5c]" />
+                <span>Formulir Perubahan Kata Sandi Akun Tunggal</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Gunakan tanda mata di sebelah kanan kolom untuk memeriksa ketikan karakter kata sandi Anda.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowResetConfirmModal(true)}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0"
+              title="Reset ke kata sandi bawaan jika darurat"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+              <span>Reset Darurat</span>
+            </button>
           </div>
 
           {/* Feedback messages */}
@@ -220,7 +264,7 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
                   type="button"
                   onClick={() => setShowOldPassword(!showOldPassword)}
                   className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 focus:outline-hidden cursor-pointer"
-                  title={showOldPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi (lihat kata sandi)'}
+                  title={showOldPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                   aria-label="Toggle old password visibility"
                 >
                   {showOldPassword ? (
@@ -236,7 +280,7 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-bold text-slate-700">
-                  Kata Sandi Baru *
+                  Kata Sandi Baru (Kunci Akun Tunggal) *
                 </label>
                 {newPassword && (
                   <span className={`text-[10px] font-bold ${getStrengthLabel().text}`}>
@@ -261,7 +305,7 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 focus:outline-hidden cursor-pointer"
-                  title={showNewPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi (lihat kata sandi)'}
+                  title={showNewPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                   aria-label="Toggle new password visibility"
                 >
                   {showNewPassword ? (
@@ -344,7 +388,7 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 focus:outline-hidden cursor-pointer"
-                  title={showConfirmPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi (lihat kata sandi)'}
+                  title={showConfirmPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                   aria-label="Toggle confirm password visibility"
                 >
                   {showConfirmPassword ? (
@@ -356,19 +400,30 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
               </div>
             </div>
 
+            {/* Peringatan Penguncian Otomatis */}
+            <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 space-y-1">
+              <div className="flex items-center gap-1.5 font-bold">
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <span>Konsekuensi Perubahan Sandi (Penguncian 1 Admin):</span>
+              </div>
+              <p className="leading-relaxed">
+                Setelah tombol simpan ditekan, sistem otomatis membatalkan sandi bawaan lama. Pengguna lain tidak akan bisa masuk selain dengan mengetikkan kata sandi baru ini.
+              </p>
+            </div>
+
             {/* Tombol Simpan Password Baru */}
             <div className="pt-2">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-2.5 px-4 bg-[#0f3d5c] hover:bg-[#154e74] text-white rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                className="w-full py-2.5 px-4 bg-[#0f3d5c] hover:bg-[#154e74] text-white rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 shadow-xs"
               >
                 {isSubmitting ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 ) : (
                   <>
                     <KeyRound className="w-4 h-4 text-amber-400" />
-                    <span>Simpan & Terapkan Kata Sandi Baru</span>
+                    <span>Simpan & Kunci Sandi Baru (Hanya 1 Admin)</span>
                   </>
                 )}
               </button>
@@ -382,7 +437,7 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
           <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
             <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
               <UserCheck className="w-4 h-4 text-emerald-600" />
-              <span>Informasi Akun Terdaftar</span>
+              <span>Informasi Akun Administrator Tunggal</span>
             </h3>
 
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2.5">
@@ -402,9 +457,20 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
               </div>
 
               <div className="flex justify-between items-center pb-2 border-b border-slate-200/70">
-                <span className="text-slate-500">Peran Hak Akses:</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                  {currentCredentials.role}
+                <span className="text-slate-500">Mode Hak Akses:</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300">
+                  Hanya 1 Administrator Tunggal
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200/70">
+                <span className="text-slate-500">Status Kata Sandi:</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  isPasswordChanged
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    : 'bg-amber-100 text-amber-800 border border-amber-200'
+                }`}>
+                  {isPasswordChanged ? 'Sandi Kustom (Terkunci)' : 'Sandi Bawaan (Default)'}
                 </span>
               </div>
 
@@ -426,13 +492,53 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
             </div>
           </div>
 
+          {/* 3 Aturan Penguncian Akun Tunggal */}
+          <div className="bg-sky-50/80 p-5 rounded-2xl border border-sky-200 text-xs text-sky-950 space-y-3">
+            <div className="font-extrabold flex items-center gap-2 text-sky-950 text-sm">
+              <ShieldCheck className="w-4 h-4 text-sky-700" />
+              <span>3 Aturan Penguncian Akun Tunggal</span>
+            </div>
+
+            <div className="space-y-2 text-[11px] text-sky-900 leading-relaxed">
+              <div className="p-2.5 bg-white/80 rounded-xl border border-sky-200/60 flex items-start gap-2">
+                <div className="w-5 h-5 rounded-full bg-sky-100 text-sky-800 font-bold flex items-center justify-center shrink-0 text-[10px]">
+                  1
+                </div>
+                <div>
+                  <strong className="text-slate-900 block font-bold">Hanya 1 Admin yang Diizinkan</strong>
+                  <span>Sistem membatasi hak akses pengelolaan portal eksklusif untuk 1 akun resmi (bapperidaprogram.pps@gmail.com).</span>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-white/80 rounded-xl border border-sky-200/60 flex items-start gap-2">
+                <div className="w-5 h-5 rounded-full bg-sky-100 text-sky-800 font-bold flex items-center justify-center shrink-0 text-[10px]">
+                  2
+                </div>
+                <div>
+                  <strong className="text-slate-900 block font-bold">Penolakan Mutlak Sandi Lama</strong>
+                  <span>Jika Anda telah mengganti kata sandi, siapa pun yang mencoba login dengan sandi lama atau sandi bawaan default otomatis ditolak oleh sistem.</span>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-white/80 rounded-xl border border-sky-200/60 flex items-start gap-2">
+                <div className="w-5 h-5 rounded-full bg-sky-100 text-sky-800 font-bold flex items-center justify-center shrink-0 text-[10px]">
+                  3
+                </div>
+                <div>
+                  <strong className="text-slate-900 block font-bold">Bantuan Kredensial Otomatis Tertutup</strong>
+                  <span>Bantuan sandi default pada menu login publik otomatis dinonaktifkan agar kata sandi baru tidak terbaca oleh orang lain.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Pengaturan Kredensial Default Login Administrator */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-amber-500" />
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  Keamanan Menu Login Admin
+                  Visibilitas Bantuan di Menu Login
                 </h3>
               </div>
               <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -440,23 +546,23 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
                   ? 'bg-rose-100 text-rose-800 border border-rose-200' 
                   : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
               }`}>
-                {isCredsDisabled ? 'Kredensial Dinonaktifkan' : 'Kredensial Aktif'}
+                {isCredsDisabled ? 'Bantuan Terkunci' : 'Bantuan Terbuka'}
               </span>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Kendalikan visibilitas bantuan kredensial default administrator (kotak email, petunjuk password, dan tombol <em>&ldquo;Isi Otomatis&rdquo;</em>) pada menu login publik.
+              Kendalikan apakah kotak bantuan kredensial default di halaman login ditampilkan atau disembunyikan.
             </p>
 
             <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
               <div className="space-y-0.5 flex-1 pr-2">
                 <span className="text-xs font-bold text-slate-900 block">
-                  Nonaktifkan Kredensial Default di Login
+                  Kunci Bantuan Kredensial di Halaman Login
                 </span>
                 <span className="text-[11px] text-slate-500 block leading-snug">
                   {isCredsDisabled 
-                    ? 'Kredensial default disembunyikan. Pengunjung tidak dapat melihat kredensial atau melakukan isi otomatis.' 
-                    : 'Kredensial default masih terlihat di menu login administrator untuk kemudahan pengujian.'}
+                    ? 'Bantuan kredensial disembunyikan. Pengunjung tidak dapat melihat petunjuk kredensial.' 
+                    : 'Bantuan kredensial masih tampil untuk keperluan pengujian.'}
                 </span>
               </div>
 
@@ -480,19 +586,6 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
               </button>
             </div>
           </div>
-
-          {/* Tips Keamanan Sandi */}
-          <div className="bg-sky-50/70 p-5 rounded-2xl border border-sky-200 text-xs text-sky-950 space-y-2.5">
-            <div className="font-bold flex items-center gap-2 text-sky-900">
-              <ShieldAlert className="w-4 h-4 text-sky-700" />
-              <span>Petunjuk Standar Keamanan Sandi</span>
-            </div>
-            <ul className="space-y-1.5 text-[11px] text-sky-900/80 list-disc list-inside leading-relaxed">
-              <li>Jangan bagikan kata sandi administrator kepada pihak yang tidak berkepentingan.</li>
-              <li>Gunakan kombinasi minimal 6 sampai 12 karakter yang memadukan huruf kapital, angka, dan simbol.</li>
-              <li>Jika Anda lupa kata sandi setelah melakukan pergantian, gunakan opsi <strong>"Reset ke Sandi Bawaan"</strong> untuk memulihkan akses.</li>
-            </ul>
-          </div>
         </div>
       </div>
 
@@ -506,14 +599,18 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
 
             <div className="text-center space-y-1.5">
               <h3 className="text-base font-extrabold text-slate-900">
-                Kembalikan Kata Sandi ke Bawaan?
+                Kembalikan Kata Sandi ke Bawaan Sistem?
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Kata sandi administrator akan direset kembali ke sandi awal:
+                Kata sandi administrator akan direset kembali ke sandi awal default:
                 <br />
                 <strong className="text-slate-800 font-mono text-sm bg-slate-100 px-2 py-0.5 rounded border border-slate-200 inline-block mt-1">
                   BapperidaPPS#2025
                 </strong>
+                <br />
+                <span className="text-[11px] text-amber-700 font-medium block mt-1">
+                  Perhatian: Setelah direset, bantuan login default akan aktif kembali sampai Anda mengubah kata sandi baru.
+                </span>
               </p>
             </div>
 

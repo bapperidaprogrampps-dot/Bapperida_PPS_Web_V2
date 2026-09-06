@@ -386,9 +386,11 @@ export const StorageService = {
       email: 'bapperidaprogram.pps@gmail.com',
       username: 'admin',
       passwordHash: 'BapperidaPPS#2025',
-      name: 'Administrator BAPPERIDA PPS',
-      role: 'Super Administrator',
-      lastPasswordChangedAt: '2025-01-01T08:00:00.000Z'
+      name: 'Administrator Utama BAPPERIDA PPS',
+      role: 'Super Administrator Tunggal',
+      lastPasswordChangedAt: '2025-01-01T08:00:00.000Z',
+      isPasswordChanged: false,
+      singleAdminOnly: true
     };
   },
 
@@ -402,6 +404,11 @@ export const StorageService = {
       // ignore
     }
     return this.getDefaultAdminCredentials();
+  },
+
+  isPasswordChanged(): boolean {
+    const creds = this.getAdminCredentials();
+    return Boolean(creds.isPasswordChanged || creds.passwordHash !== 'BapperidaPPS#2025');
   },
 
   saveAdminCredentials(creds: AdminCredentials): void {
@@ -439,14 +446,23 @@ export const StorageService = {
     if (!isEmailMatch && !isUserMatch) {
       return {
         success: false,
-        message: 'Email atau username tidak terdaftar dalam sistem administrator.'
+        message: 'Akses Ditolak: Sistem hanya mendukung 1 akun Administrator resmi (bapperidaprogram.pps@gmail.com). Email atau username yang Anda masukkan tidak terdaftar.'
       };
     }
 
+    // Periksa jika password telah diubah dan pengguna mencoba menggunakan password default lama
+    const isChanged = this.isPasswordChanged();
     if (passwordInput !== creds.passwordHash) {
+      if (isChanged && (passwordInput === 'BapperidaPPS#2025' || passwordInput === 'admin')) {
+        return {
+          success: false,
+          message: 'Akses Ditolak: Kata sandi bawaan (default) sudah tidak berlaku karena Administrator Utama telah memperbarui kata sandi. Pengguna lain tidak dapat masuk selain menggunakan kata sandi yang telah diubah.'
+        };
+      }
+
       return {
         success: false,
-        message: 'Kata sandi (password) yang Anda masukkan salah. Silakan coba lagi.'
+        message: 'Kata sandi salah. Portal Bapperida hanya memiliki 1 administrator dan akses terkunci pada kata sandi terbaru yang telah ditetapkan.'
       };
     }
 
@@ -487,15 +503,20 @@ export const StorageService = {
     const updatedCreds: AdminCredentials = {
       ...creds,
       passwordHash: newPassword,
-      lastPasswordChangedAt: new Date().toISOString()
+      lastPasswordChangedAt: new Date().toISOString(),
+      isPasswordChanged: true,
+      singleAdminOnly: true
     };
 
     this.saveAdminCredentials(updatedCreds);
     localStorage.setItem(KEYS.ADMIN_SESSION_USER, JSON.stringify(updatedCreds));
 
+    // Kunci bantuan kredensial default di layar login secara otomatis demi privasi admin
+    this.setDefaultCredentialsDisabled(true);
+
     return {
       success: true,
-      message: 'Kata sandi berhasil diperbarui. Harap simpan kata sandi baru Anda dengan aman.'
+      message: 'Kata sandi berhasil diperbarui! Sistem kini terkunci hanya untuk 1 admin dengan kata sandi baru Anda. Pengguna lain tidak akan dapat masuk menggunakan sandi lama.'
     };
   },
 
@@ -503,6 +524,7 @@ export const StorageService = {
     const defaults = this.getDefaultAdminCredentials();
     this.saveAdminCredentials(defaults);
     localStorage.setItem(KEYS.ADMIN_SESSION_USER, JSON.stringify(defaults));
+    this.setDefaultCredentialsDisabled(false);
     return {
       success: true,
       message: 'Kata sandi berhasil direset ke sandi bawaan (BapperidaPPS#2025).'

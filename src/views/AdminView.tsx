@@ -185,7 +185,7 @@ export function AdminView({
     {
       group: 'Keamanan & Kredensial',
       items: [
-        { id: 'keamanan', label: 'Keamanan & Ganti Sandi', icon: KeyRound, badge: 'Kredensial' },
+        { id: 'keamanan', label: 'Keamanan & Hanya 1 Admin', icon: KeyRound, badge: '1 Admin' },
       ]
     }
   ];
@@ -223,6 +223,7 @@ export function AdminView({
           <div className="px-3 py-1.5 bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-emerald-300 text-xs font-mono font-bold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span className="truncate max-w-[170px] sm:max-w-none">{currentAdmin.email}</span>
+            <span className="text-[10px] font-sans font-black uppercase px-1.5 py-0.5 rounded bg-emerald-800/80 text-emerald-200 border border-emerald-600/40">1 Admin</span>
           </div>
 
           <button
