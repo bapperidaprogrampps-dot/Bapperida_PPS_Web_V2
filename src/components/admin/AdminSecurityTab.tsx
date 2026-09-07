@@ -133,7 +133,7 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
     setIsPasswordChanged(false);
     setIsCredsDisabled(false);
     showToast(res.message);
-    setSuccessMessage('Kata sandi telah dikembalikan ke sandi awal bawaan sistem (BapperidaPPS#2025).');
+    setSuccessMessage('Kata sandi telah dikembalikan ke sandi awal bawaan sistem (Tehkotak_213).');
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
@@ -605,7 +605,7 @@ export function AdminSecurityTab({ showToast, onDataChanged }: AdminSecurityTabP
                 Kata sandi administrator akan direset kembali ke sandi awal default:
                 <br />
                 <strong className="text-slate-800 font-mono text-sm bg-slate-100 px-2 py-0.5 rounded border border-slate-200 inline-block mt-1">
-                  BapperidaPPS#2025
+                  Tehkotak_213
                 </strong>
                 <br />
                 <span className="text-[11px] text-amber-700 font-medium block mt-1">

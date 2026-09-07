@@ -57,6 +57,27 @@ interface VpsDiagData {
   files: VpsFileInfo[];
 }
 
+interface MysqlTableStat {
+  name: string;
+  key?: string;
+  rows: number;
+  uninitialized?: boolean;
+}
+
+interface MysqlDiagData {
+  success: boolean;
+  connected: boolean;
+  config?: {
+    host: string;
+    port: number;
+    user: string;
+    database: string;
+  };
+  version?: string;
+  tables?: MysqlTableStat[];
+  error?: string;
+}
+
 const MODULE_DESCRIPTIONS: Record<string, string> = {
   settings: 'Pengaturan Instansi, Sambutan Pimpinan & Video Hero',
   articles: 'Berita & Rilis Resmi Bapperida',
@@ -81,6 +102,11 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
   const [isPulling, setIsPulling] = useState<boolean>(false);
   const backupInputRef = React.useRef<HTMLInputElement | null>(null);
 
+  // MySQL database diagnostics state
+  const [mysqlDiag, setMysqlDiag] = useState<MysqlDiagData | null>(null);
+  const [isCheckingMysql, setIsCheckingMysql] = useState<boolean>(false);
+  const [isMigratingMysql, setIsMigratingMysql] = useState<boolean>(false);
+
   // VPS JSON diagnostics state
   const [vpsDiag, setVpsDiag] = useState<VpsDiagData | null>(null);
   const [vpsError, setVpsError] = useState<string | null>(null);
@@ -99,7 +125,48 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
   }, []);
 
   const checkAllStatuses = async () => {
-    await Promise.all([checkStatus(), checkVpsStatus()]);
+    await Promise.all([checkStatus(), checkVpsStatus(), checkMysqlStatus()]);
+  };
+
+  const checkMysqlStatus = async () => {
+    setIsCheckingMysql(true);
+    try {
+      const res = await CentralSyncService.checkMysqlStatus();
+      setMysqlDiag(res);
+      if (res.connected) {
+        showToast(`Basis Data MySQL Terhubung! Versi: ${res.version || 'MySQL'}`);
+      }
+    } catch (err: any) {
+      setMysqlDiag({
+        success: false,
+        connected: false,
+        error: err.message || 'Gagal menghubungi server MySQL'
+      });
+    } finally {
+      setIsCheckingMysql(false);
+    }
+  };
+
+  const handleMigrateMysql = async () => {
+    setIsMigratingMysql(true);
+    try {
+      const res = await CentralSyncService.migrateToMysql();
+      if (res.success) {
+        showToast(res.message);
+        await checkMysqlStatus();
+      } else {
+        showToast(`Migrasi: ${res.message}`);
+      }
+    } catch (e: any) {
+      showToast(`Gagal: ${e.message}`);
+    } finally {
+      setIsMigratingMysql(false);
+    }
+  };
+
+  const handleDownloadSqlSchema = () => {
+    window.open('/schema.sql', '_blank');
+    showToast('Mengunduh berkas skrip schema.sql untuk phpMyAdmin...');
   };
 
   const handlePushAll = async () => {
@@ -359,6 +426,196 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
             <span className="font-mono text-[10px] bg-slate-800/60 px-2 py-0.5 rounded text-amber-300">
               Lokasi File Server: /uploads/data/*.json
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* PANEL UTAMA: BASIS DATA MYSQL / MARIADB HOSTINGER        */}
+      {/* ======================================================== */}
+      <div className="bg-white rounded-2xl border-2 border-[#0f3d5c]/20 p-5 sm:p-6 space-y-5 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[#0f3d5c] text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Database className="w-6 h-6 text-amber-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h3 className="text-lg font-black text-slate-900">
+                  Basis Data Utama: MySQL / MariaDB Hostinger
+                </h3>
+                {mysqlDiag?.connected ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Terhubung &amp; Aktif</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Mode Siaga (Mirror Active)</span>
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Penyimpanan relasional MySQL untuk seluruh pengaturan website, berita, dokumen perencanaan daerah, pegawai, dan video beranda secara terstruktur.
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleMigrateMysql}
+              disabled={isMigratingMysql}
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs disabled:opacity-50"
+              title="Salin seluruh data yang ada saat ini ke dalam tabel-tabel MySQL"
+            >
+              <Layers className={`w-3.5 h-3.5 ${isMigratingMysql ? 'animate-spin' : ''}`} />
+              <span>{isMigratingMysql ? 'Memigrasikan Data...' : 'Migrasikan Data ke MySQL'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadSqlSchema}
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+              title="Unduh file schema.sql untuk diimpor ke phpMyAdmin Hostinger"
+            >
+              <Download className="w-3.5 h-3.5 text-amber-400" />
+              <span>Unduh schema.sql</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={checkMysqlStatus}
+              disabled={isCheckingMysql}
+              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isCheckingMysql ? 'animate-spin' : ''}`} />
+              <span>Cek Koneksi</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Status Box */}
+        {mysqlDiag?.connected ? (
+          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs text-emerald-950">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div>
+                <div className="font-bold text-emerald-900">
+                  Koneksi MySQL Sukses ({mysqlDiag.version || 'MySQL / MariaDB'})
+                </div>
+                <div className="text-[11px] text-emerald-800 mt-0.5">
+                  Host: <strong className="font-mono">{mysqlDiag.config?.host}:{mysqlDiag.config?.port}</strong> | 
+                  Database: <strong className="font-mono">{mysqlDiag.config?.database}</strong> | 
+                  Pengguna: <strong className="font-mono">{mysqlDiag.config?.user}</strong>
+                </div>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="bg-emerald-200/80 text-emerald-900 font-bold px-2.5 py-1 rounded-lg text-[11px]">
+                Semua Transaksi Menggunakan MySQL
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-2">
+            <div className="flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold text-amber-950">
+                  Status: MySQL Siaga (Sistem Berjalan Stabil via Mirror File)
+                </div>
+                <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                  Portal saat ini tetap aktif dan lancar menggunakan penyimpanan server lokal Hostinger. Untuk mengaktifkan basis data MySQL Hostinger secara permanen, masukkan kredensial database di file <code className="font-mono bg-amber-100 px-1 py-0.5 rounded font-bold">.env</code> server Anda atau impor <code className="font-mono bg-amber-100 px-1 py-0.5 rounded font-bold">schema.sql</code> ke phpMyAdmin.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Grid / List of 9 MySQL Tables */}
+        <div>
+          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+            <span>Struktur 9 Tabel MySQL Bapperida</span>
+            <span className="text-[11px] font-normal text-slate-500 lowercase">
+              otomatis tersinkronisasi
+            </span>
+          </h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              { table: 'tb_settings', title: 'Pengaturan & Video Hero', key: 'settings', desc: 'Instansi, sambutan, & video latar beranda' },
+              { table: 'tb_articles', title: 'Berita & Rilis Resmi', key: 'articles', desc: 'Publikasi dan artikel Bapperida' },
+              { table: 'tb_documents', title: 'Dokumen Perencanaan', key: 'documents', desc: 'RPJPD, Renstra, RKPD, Evaluasi' },
+              { table: 'tb_employees', title: 'Struktur Organisasi & Pegawai', key: 'employees', desc: 'Data pejabat dan staf ASN' },
+              { table: 'tb_indicators', title: 'Indikator Pembangunan', key: 'indicators', desc: 'Statistik IPM, PDRB, Kemiskinan' },
+              { table: 'tb_agendas', title: 'Kalender & Agenda Kerja', key: 'agendas', desc: 'Jadwal kegiatan kedinasan' },
+              { table: 'tb_gallery', title: 'Galeri Foto Kegiatan', key: 'gallery', desc: 'Dokumentasi visual lapangan' },
+              { table: 'tb_complaints', title: 'Aspirasi & Pengaduan', key: 'complaints', desc: 'Layanan aspirasi publik SP4N' },
+              { table: 'tb_info_requests', title: 'Permohonan Informasi PPID', key: 'info_requests', desc: 'Layanan keterbukaan informasi publik' },
+            ].map((item) => {
+              const matchedTable = mysqlDiag?.tables?.find((t) => t.name === item.table || t.key === item.key);
+              const matchedVpsFile = vpsDiag?.files?.find((f) => f.key === item.key);
+              const count = matchedTable?.rows !== undefined ? matchedTable.rows : (matchedVpsFile?.recordCount || 0);
+
+              return (
+                <div key={item.table} className="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200 transition space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-[#0f3d5c]">{item.table}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                      {count} baris
+                    </span>
+                  </div>
+                  <div className="text-xs font-semibold text-slate-800">{item.title}</div>
+                  <div className="text-[10px] text-slate-500 leading-tight">{item.desc}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Panduan Cepat Setup MySQL Hostinger (Accordion / Guide) */}
+        <div className="p-4 bg-slate-900 text-slate-200 rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+              <Terminal className="w-4 h-4" />
+              <span>Panduan Konfigurasi MySQL di Hostinger (phpMyAdmin &amp; VPS)</span>
+            </h4>
+            <span className="text-[10px] text-slate-400 font-mono">utf8mb4_unicode_ci</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px] text-slate-300">
+            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+              <div className="font-bold text-white flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-full bg-amber-400 text-slate-950 text-[10px] flex items-center justify-center font-black">1</span>
+                <span>Buat Database Hostinger</span>
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                Di hPanel Hostinger, buka menu <strong>Databases &gt; MySQL Databases</strong>. Buat database baru (contoh: <code className="text-amber-300">bapperida_db</code>) beserta username &amp; password.
+              </p>
+            </div>
+
+            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+              <div className="font-bold text-white flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-full bg-amber-400 text-slate-950 text-[10px] flex items-center justify-center font-black">2</span>
+                <span>Impor Skema (schema.sql)</span>
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                Klik tombol <strong>Masuk ke phpMyAdmin</strong> &gt; Pilih database &gt; Menu <strong>Import</strong> &gt; Unggah file <code className="text-amber-300">schema.sql</code> yang diunduh dari panel ini.
+              </p>
+            </div>
+
+            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+              <div className="font-bold text-white flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-full bg-amber-400 text-slate-950 text-[10px] flex items-center justify-center font-black">3</span>
+                <span>Isi .env &amp; Migrasi</span>
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                Isi parameter <code className="text-amber-300">DB_HOST</code>, <code className="text-amber-300">DB_USER</code>, <code className="text-amber-300">DB_PASSWORD</code>, <code className="text-amber-300">DB_NAME</code> di file <code className="text-amber-300">.env</code>, lalu klik tombol <em>&quot;Migrasikan Data ke MySQL&quot;</em>.
+              </p>
+            </div>
           </div>
         </div>
       </div>

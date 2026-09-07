@@ -510,6 +510,76 @@ class CentralSyncServiceManager {
       };
     }
   }
+
+  /**
+   * Cek status koneksi dan tabel MySQL di server Hostinger
+   */
+  public async checkMysqlStatus(): Promise<{
+    success: boolean;
+    connected: boolean;
+    config?: { host: string; port: number; user: string; database: string };
+    version?: string;
+    tables?: Array<{ name: string; key?: string; rows: number; uninitialized?: boolean }>;
+    error?: string;
+  }> {
+    const baseUrl = this.getApiBaseUrl();
+    try {
+      const res = await fetch(`${baseUrl}/api/mysql/status`);
+      if (res.ok) {
+        const data = await res.json();
+        return data;
+      }
+      const phpRes = await fetch(`${baseUrl}/api-hostinger/mysql.php?action=status`);
+      if (phpRes.ok) {
+        const phpData = await phpRes.json();
+        return phpData;
+      }
+      return {
+        success: false,
+        connected: false,
+        error: `Server merespons status HTTP ${res.status}`
+      };
+    } catch (e: any) {
+      return {
+        success: false,
+        connected: false,
+        error: e.message || 'Tidak dapat terhubung ke endpoint MySQL server'
+      };
+    }
+  }
+
+  /**
+   * Migrasi seluruh data dari cache / file ke database MySQL
+   */
+  public async migrateToMysql(): Promise<{ success: boolean; message: string; migratedModules?: string[] }> {
+    const baseUrl = this.getApiBaseUrl();
+    try {
+      // Pastikan data lokal di-push lebih dulu
+      await this.pushAllToServer();
+
+      const res = await fetch(`${baseUrl}/api/mysql/migrate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          success: data.success,
+          message: data.success 
+            ? `Berhasil memigrasikan ${data.migratedModules?.length || 0} modul ke tabel-tabel MySQL!`
+            : data.error || 'Migrasi gagal',
+          migratedModules: data.migratedModules
+        };
+      }
+      throw new Error(`HTTP ${res.status}`);
+    } catch (e: any) {
+      return {
+        success: false,
+        message: e.message || 'Gagal memicu migrasi MySQL'
+      };
+    }
+  }
 }
 
 export const CentralSyncService = new CentralSyncServiceManager();

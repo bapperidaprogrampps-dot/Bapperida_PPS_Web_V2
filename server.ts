@@ -13,6 +13,14 @@ import {
   initialGallery, 
   initialComplaints 
 } from './src/data/mockData';
+import { 
+  getMysqlPool, 
+  testMysqlConnection, 
+  saveModuleToMysql, 
+  getModuleFromMysql, 
+  migrateAllJsonToMysql, 
+  getMysqlConfig 
+} from './server/mysql';
 
 const app = express();
 const PORT = 3000;
@@ -269,20 +277,42 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 });
 
 // 4. Centralized Data APIs for Multi-Browser / Shared Persistence
-// GET all data keys at once (used on initial app load in any browser)
-app.get('/api/sync/all', (req, res) => {
+// GET all data keys at once (reads from MySQL first, then falls back to JSON)
+app.get('/api/sync/all', async (req, res) => {
   try {
     const result: Record<string, any> = {};
+    const keys = ['settings', 'articles', 'documents', 'employees', 'indicators', 'agendas', 'gallery', 'complaints', 'info_requests'];
+    let usedMysql = false;
+
+    // Coba baca dari MySQL terlebih dahulu
+    try {
+      const pool = await getMysqlPool();
+      if (pool) {
+        for (const k of keys) {
+          const rowData = await getModuleFromMysql(k);
+          if (rowData !== null && rowData !== undefined) {
+            result[k] = rowData;
+            usedMysql = true;
+          }
+        }
+      }
+    } catch (e: any) {
+      console.warn('MySQL read warning:', e.message);
+    }
+
+    // Lengkapi data dari berkas JSON lokal jika belum ada di MySQL atau MySQL offline
     if (fs.existsSync(DATA_BASE_DIR)) {
       const files = fs.readdirSync(DATA_BASE_DIR);
       files.forEach((file) => {
         if (file.endsWith('.json')) {
           const key = path.basename(file, '.json');
-          try {
-            const content = fs.readFileSync(path.join(DATA_BASE_DIR, file), 'utf-8');
-            result[key] = JSON.parse(content);
-          } catch {
-            // ignore malformed JSON file
+          if (!result[key]) {
+            try {
+              const content = fs.readFileSync(path.join(DATA_BASE_DIR, file), 'utf-8');
+              result[key] = JSON.parse(content);
+            } catch {
+              // ignore malformed JSON file
+            }
           }
         }
       });
@@ -290,6 +320,7 @@ app.get('/api/sync/all', (req, res) => {
 
     res.json({
       success: true,
+      database: usedMysql ? 'MySQL / MariaDB' : 'JSON Storage (Fallback)',
       data: result,
       count: Object.keys(result).length,
       syncedAt: new Date().toISOString()
@@ -302,8 +333,8 @@ app.get('/api/sync/all', (req, res) => {
   }
 });
 
-// POST all data keys (used when Admin syncs/restores everything)
-app.post('/api/sync/all', (req, res) => {
+// POST all data keys (simpan ke MySQL dan mirror ke JSON)
+app.post('/api/sync/all', async (req, res) => {
   try {
     const payload = req.body?.data || req.body;
     if (!payload || typeof payload !== 'object') {
@@ -311,19 +342,30 @@ app.post('/api/sync/all', (req, res) => {
     }
 
     let savedCount = 0;
-    Object.keys(payload).forEach((key) => {
+    let mysqlSavedCount = 0;
+    const keys = Object.keys(payload);
+
+    for (const key of keys) {
       const cleanKey = key.replace(/[^a-zA-Z0-9_-]/g, '');
       if (cleanKey) {
+        // 1. Simpan ke berkas JSON lokal
         const filePath = path.join(DATA_BASE_DIR, `${cleanKey}.json`);
         fs.writeFileSync(filePath, JSON.stringify(payload[key], null, 2), 'utf-8');
         savedCount++;
+
+        // 2. Simpan ke tabel MySQL
+        try {
+          const ok = await saveModuleToMysql(cleanKey, payload[key]);
+          if (ok) mysqlSavedCount++;
+        } catch {}
       }
-    });
+    }
 
     res.json({
       success: true,
-      message: `${savedCount} modul data berhasil disimpan ke server Hostinger`,
+      message: `${savedCount} modul data berhasil disimpan (${mysqlSavedCount} tersinkronisasi ke MySQL)`,
       savedCount,
+      mysqlSavedCount,
       savedAt: new Date().toISOString()
     });
   } catch (error: any) {
@@ -335,22 +377,39 @@ app.post('/api/sync/all', (req, res) => {
 });
 
 // GET single data key (e.g. /api/data/settings, /api/data/articles)
-app.get('/api/data/:key', (req, res) => {
+app.get('/api/data/:key', async (req, res) => {
   try {
     const cleanKey = req.params.key.replace(/[^a-zA-Z0-9_-]/g, '');
+
+    // Coba ambil dari MySQL terlebih dahulu
+    try {
+      const mysqlData = await getModuleFromMysql(cleanKey);
+      if (mysqlData !== null && mysqlData !== undefined) {
+        return res.json({
+          success: true,
+          source: 'mysql',
+          key: cleanKey,
+          data: mysqlData
+        });
+      }
+    } catch {}
+
+    // Fallback ke berkas JSON
     const filePath = path.join(DATA_BASE_DIR, `${cleanKey}.json`);
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf-8');
       return res.json({
         success: true,
+        source: 'json_file',
         key: cleanKey,
         data: JSON.parse(content)
       });
     }
+
     return res.status(404).json({
       success: false,
       key: cleanKey,
-      error: 'Data belum tersimpan di server'
+      error: 'Data belum tersimpan di database maupun berkas server'
     });
   } catch (error: any) {
     return res.status(500).json({
@@ -361,18 +420,30 @@ app.get('/api/data/:key', (req, res) => {
 });
 
 // POST single data key
-app.post('/api/data/:key', (req, res) => {
+app.post('/api/data/:key', async (req, res) => {
   try {
     const cleanKey = req.params.key.replace(/[^a-zA-Z0-9_-]/g, '');
     const filePath = path.join(DATA_BASE_DIR, `${cleanKey}.json`);
     const payload = req.body;
     const dataToSave = payload && payload.data !== undefined ? payload.data : payload;
 
+    // 1. Simpan ke berkas mirror JSON lokal
     fs.writeFileSync(filePath, JSON.stringify(dataToSave, null, 2), 'utf-8');
+
+    // 2. Simpan ke database MySQL
+    let mysqlSaved = false;
+    try {
+      mysqlSaved = await saveModuleToMysql(cleanKey, dataToSave);
+    } catch (dbErr: any) {
+      console.warn(`MySQL save error untuk ${cleanKey}:`, dbErr.message);
+    }
+
     return res.json({
       success: true,
       key: cleanKey,
-      message: `Data ${cleanKey} berhasil disimpan terpusat di server Hostinger`,
+      mysqlSaved,
+      storage: mysqlSaved ? 'MySQL + Mirror JSON' : 'Server Mirror Storage',
+      message: `Data ${cleanKey} berhasil disimpan terpusat`,
       savedAt: new Date().toISOString()
     });
   } catch (error: any) {
@@ -381,6 +452,43 @@ app.post('/api/data/:key', (req, res) => {
       error: error.message || 'Gagal menyimpan data modul ke server'
     });
   }
+});
+
+// 5. VPS & MySQL Diagnostic & Maintenance Endpoints
+app.get('/api/mysql/status', async (req, res) => {
+  try {
+    const result = await testMysqlConnection();
+    res.json({
+      success: true,
+      ...result
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal memeriksa status MySQL'
+    });
+  }
+});
+
+app.post('/api/mysql/migrate', async (req, res) => {
+  try {
+    const result = await migrateAllJsonToMysql(DATA_BASE_DIR);
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal melakukan migrasi ke MySQL'
+    });
+  }
+});
+
+app.get('/api/mysql/schema', (req, res) => {
+  const schemaPath = path.join(process.cwd(), 'public', 'schema.sql');
+  if (fs.existsSync(schemaPath)) {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    return res.sendFile(schemaPath);
+  }
+  return res.status(404).json({ success: false, error: 'Skema schema.sql tidak ditemukan' });
 });
 
 // 5. VPS & JSON Diagnostic & Maintenance Endpoints

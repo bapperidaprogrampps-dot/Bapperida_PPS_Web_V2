@@ -406,7 +406,7 @@ export const StorageService = {
     return {
       email: 'bapperidaprogram.pps@gmail.com',
       username: 'admin',
-      passwordHash: 'BapperidaPPS#2025',
+      passwordHash: 'Tehkotak_213',
       name: 'Administrator Utama BAPPERIDA PPS',
       role: 'Super Administrator Tunggal',
       lastPasswordChangedAt: '2025-01-01T08:00:00.000Z',
@@ -419,7 +419,13 @@ export const StorageService = {
     try {
       const data = localStorage.getItem(KEYS.ADMIN_CREDENTIALS);
       if (data) {
-        return { ...this.getDefaultAdminCredentials(), ...JSON.parse(data) };
+        const parsed = JSON.parse(data);
+        // Migrasi otomatis jika sebelumnya masih menggunakan default lama BapperidaPPS#2025
+        if (parsed.passwordHash === 'BapperidaPPS#2025' || (!parsed.isPasswordChanged && parsed.passwordHash !== 'Tehkotak_213')) {
+          parsed.passwordHash = 'Tehkotak_213';
+          localStorage.setItem(KEYS.ADMIN_CREDENTIALS, JSON.stringify(parsed));
+        }
+        return { ...this.getDefaultAdminCredentials(), ...parsed };
       }
     } catch {
       // ignore
@@ -429,7 +435,7 @@ export const StorageService = {
 
   isPasswordChanged(): boolean {
     const creds = this.getAdminCredentials();
-    return Boolean(creds.isPasswordChanged || creds.passwordHash !== 'BapperidaPPS#2025');
+    return Boolean(creds.isPasswordChanged && creds.passwordHash !== 'Tehkotak_213');
   },
 
   saveAdminCredentials(creds: AdminCredentials): void {
@@ -474,7 +480,7 @@ export const StorageService = {
     // Periksa jika password telah diubah dan pengguna mencoba menggunakan password default lama
     const isChanged = this.isPasswordChanged();
     if (passwordInput !== creds.passwordHash) {
-      if (isChanged && (passwordInput === 'BapperidaPPS#2025' || passwordInput === 'admin')) {
+      if (isChanged && (passwordInput === 'Tehkotak_213' || passwordInput === 'BapperidaPPS#2025' || passwordInput === 'admin')) {
         return {
           success: false,
           message: 'Akses Ditolak: Kata sandi bawaan (default) sudah tidak berlaku karena Administrator Utama telah memperbarui kata sandi. Pengguna lain tidak dapat masuk selain menggunakan kata sandi yang telah diubah.'
@@ -545,10 +551,10 @@ export const StorageService = {
     const defaults = this.getDefaultAdminCredentials();
     this.saveAdminCredentials(defaults);
     localStorage.setItem(KEYS.ADMIN_SESSION_USER, JSON.stringify(defaults));
-    this.setDefaultCredentialsDisabled(false);
+    this.setDefaultCredentialsDisabled(true);
     return {
       success: true,
-      message: 'Kata sandi berhasil direset ke sandi bawaan (BapperidaPPS#2025).'
+      message: 'Kata sandi berhasil direset ke sandi bawaan (Tehkotak_213).'
     };
   },
 
