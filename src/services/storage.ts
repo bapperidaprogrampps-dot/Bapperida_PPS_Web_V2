@@ -38,6 +38,25 @@ const KEYS = {
   ADMIN_DISABLE_DEFAULT_CREDS: 'bapperida_pps_admin_disable_default_creds_v1',
 };
 
+// Satu kali pembersihan otomatis dummy data lawas di browser pengunjung
+if (typeof window !== 'undefined') {
+  try {
+    const DUMMY_CLEANED_FLAG = 'bapperida_pps_dummy_data_purged_v2';
+    if (!localStorage.getItem(DUMMY_CLEANED_FLAG)) {
+      localStorage.setItem(KEYS.ARTICLES, JSON.stringify([]));
+      localStorage.setItem(KEYS.DOCUMENTS, JSON.stringify([]));
+      localStorage.setItem(KEYS.COMPLAINTS, JSON.stringify([]));
+      localStorage.setItem(KEYS.AGENDAS, JSON.stringify([]));
+      localStorage.setItem(KEYS.GALLERY, JSON.stringify([]));
+      localStorage.setItem(KEYS.EMPLOYEES, JSON.stringify([]));
+      localStorage.setItem(KEYS.INFO_REQUESTS, JSON.stringify([]));
+      localStorage.setItem(DUMMY_CLEANED_FLAG, 'true');
+    }
+  } catch (e) {
+    console.warn('Gagal membersihkan cache dummy data lokal:', e);
+  }
+}
+
 export const StorageService = {
   // Articles
   getArticles(): NewsArticle[] {

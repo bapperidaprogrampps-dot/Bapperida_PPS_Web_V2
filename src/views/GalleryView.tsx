@@ -52,52 +52,64 @@ export function GalleryView({ gallery }: GalleryViewProps) {
       </div>
 
       {/* Photo Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => setActivePhoto(item)}
-            className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer group flex flex-col"
-          >
-            <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">
-              <img
-                src={item.imageUrl}
-                alt={item.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                <span className="p-2 rounded-full bg-white/90 text-slate-900 border border-slate-200">
-                  <Eye className="w-5 h-5" />
+      {filtered.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => setActivePhoto(item)}
+              className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer group flex flex-col"
+            >
+              <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">
+                <img
+                  src={item.imageUrl}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                  <span className="p-2 rounded-full bg-white/90 text-slate-900 border border-slate-200">
+                    <Eye className="w-5 h-5" />
+                  </span>
+                </div>
+                <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-[#0f3d5c]/85 text-white backdrop-blur-xs">
+                  {item.category}
                 </span>
-              </div>
-              <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-[#0f3d5c]/85 text-white backdrop-blur-xs">
-                {item.category}
-              </span>
-            </div>
-
-            <div className="p-4 flex-1 flex flex-col justify-between space-y-2">
-              <div>
-                <h4 className="font-bold text-sm text-slate-900 group-hover:text-[#0f3d5c] line-clamp-2 leading-snug">
-                  {item.title}
-                </h4>
-                <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                  {item.caption}
-                </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-amber-500" /> {item.location}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> {item.date}
-                </span>
+              <div className="p-4 flex-1 flex flex-col justify-between space-y-2">
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900 group-hover:text-[#0f3d5c] line-clamp-2 leading-snug">
+                    {item.title}
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                    {item.caption}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-amber-500" /> {item.location}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" /> {item.date}
+                  </span>
+                </div>
               </div>
             </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+          <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+            <ImageIcon className="w-6 h-6" />
           </div>
-        ))}
-      </div>
+          <h3 className="font-bold text-slate-800 text-base">Belum Ada Dokumentasi Foto</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            Belum ada dokumentasi visual atau kegiatan lapangan yang dipublikasikan. Dokumentasi resmi dapat diunggah melalui Portal Admin.
+          </p>
+        </div>
+      )}
       </div>
 
       {/* Lightbox Modal */}

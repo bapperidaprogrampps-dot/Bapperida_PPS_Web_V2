@@ -3,9 +3,11 @@
 -- Hostinger VPS / Cloud / cPanel MySQL & phpMyAdmin Ready
 -- Karakter: utf8mb4 / utf8mb4_unicode_ci
 -- =============================================================
-
-CREATE DATABASE IF NOT EXISTS `bapperida_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `bapperida_db`;
+-- CATATAN PENTING HOSTINGER:
+-- Di phpMyAdmin Hostinger, nama database dibuat melalui hPanel (contoh: u898537914_bapperida).
+-- Anda TIDAK PERLU menjalankan perintah "CREATE DATABASE" atau "USE".
+-- Cukup klik nama database Anda di panel kiri phpMyAdmin, lalu impor/jalankan skrip tabel di bawah:
+-- =============================================================
 
 -- 1. TABEL PENGATURAN INSTANSI, SAMBUTAN PIMPINAN & VIDEO HERO
 CREATE TABLE IF NOT EXISTS `tb_settings` (

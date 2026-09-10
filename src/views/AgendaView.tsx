@@ -61,69 +61,81 @@ export function AgendaView({ agendas }: AgendaViewProps) {
       </ScrollReveal>
 
       {/* Agenda Grid/List */}
-      <StaggerContainer staggerDelay={0.07} className="space-y-4">
-        {filtered.map((ag) => {
-          const [year, month, day] = ag.date.split('-');
-          const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-          const monthLabel = monthNames[parseInt(month, 10) - 1] || 'Bulan';
+      {filtered.length > 0 ? (
+        <StaggerContainer staggerDelay={0.07} className="space-y-4">
+          {filtered.map((ag) => {
+            const [year, month, day] = ag.date.split('-');
+            const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const monthLabel = monthNames[parseInt(month, 10) - 1] || 'Bulan';
 
-          return (
-            <StaggerItem key={ag.id} variant="fade-up">
-              <div
-                className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-[#0f3d5c] transition flex flex-col sm:flex-row gap-5 items-start"
-              >
-                {/* Date Box */}
-                <div className="w-full sm:w-28 py-3 bg-slate-50 border border-slate-200 rounded-xl flex sm:flex-col items-center justify-center gap-2 sm:gap-0 shrink-0 text-center">
-                  <span className="text-2xl sm:text-3xl font-black text-[#0f3d5c] leading-none">{day}</span>
-                  <span className="text-xs font-bold text-slate-600 uppercase mt-1">{monthLabel}</span>
-                  <span className="text-[11px] font-mono text-slate-400">{year}</span>
-                </div>
-
-                {/* Event Details */}
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#0f3d5c]">
-                      {ag.category}
-                    </span>
-                    <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
-                      ag.status === 'Akan Datang' 
-                        ? 'bg-amber-100 text-amber-900 border border-amber-300' 
-                        : ag.status === 'Sedang Berlangsung'
-                        ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                        : 'bg-slate-100 text-slate-600'
-                    }`}>
-                      {ag.status}
-                    </span>
+            return (
+              <StaggerItem key={ag.id} variant="fade-up">
+                <div
+                  className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-[#0f3d5c] transition flex flex-col sm:flex-row gap-5 items-start"
+                >
+                  {/* Date Box */}
+                  <div className="w-full sm:w-28 py-3 bg-slate-50 border border-slate-200 rounded-xl flex sm:flex-col items-center justify-center gap-2 sm:gap-0 shrink-0 text-center">
+                    <span className="text-2xl sm:text-3xl font-black text-[#0f3d5c] leading-none">{day}</span>
+                    <span className="text-xs font-bold text-slate-600 uppercase mt-1">{monthLabel}</span>
+                    <span className="text-[11px] font-mono text-slate-400">{year}</span>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
-                    {ag.title}
-                  </h3>
-
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    {ag.description}
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-xs text-slate-500 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                      <span>{ag.time}</span>
+                  {/* Event Details */}
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#0f3d5c]">
+                        {ag.category}
+                      </span>
+                      <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
+                        ag.status === 'Akan Datang' 
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300' 
+                          : ag.status === 'Sedang Berlangsung'
+                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {ag.status}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                      <span className="truncate">{ag.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 sm:col-span-2 text-slate-600">
-                      <Building2 className="w-3.5 h-3.5 text-[#0f3d5c] shrink-0" />
-                      <span>Penyelenggara: <strong>{ag.organizer}</strong></span>
+
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
+                      {ag.title}
+                    </h3>
+
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      {ag.description}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-xs text-slate-500 border-t border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span>{ag.time}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span className="truncate">{ag.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 sm:col-span-2 text-slate-600">
+                        <Building2 className="w-3.5 h-3.5 text-[#0f3d5c] shrink-0" />
+                        <span>Penyelenggara: <strong>{ag.organizer}</strong></span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </StaggerItem>
-          );
-        })}
-      </StaggerContainer>
+              </StaggerItem>
+            );
+          })}
+        </StaggerContainer>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+          <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+            <Calendar className="w-6 h-6" />
+          </div>
+          <h3 className="font-bold text-slate-800 text-base">Belum Ada Agenda Kegiatan</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            Belum ada jadwal rapat koordinasi, sosialisasi, atau musrenbang. Agenda resmi dapat ditambahkan melalui Portal Admin.
+          </p>
+        </div>
+      )}
       </div>
     </div>
   );

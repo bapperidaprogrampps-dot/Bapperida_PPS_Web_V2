@@ -491,64 +491,74 @@ export function ProfileView() {
             </div>
 
             {/* Alternating Zig-Zag Rows by Hierarchy */}
-            <div className="relative z-10 space-y-12">
-              {(() => {
-                let globalCounter = 0;
+            {employees.length === 0 ? (
+              <div className="relative z-10 p-12 text-center bg-white/5 rounded-3xl border border-white/15 space-y-3">
+                <Users className="w-12 h-12 text-slate-400 mx-auto" />
+                <h4 className="text-base font-bold text-white">Belum Ada Profil Pegawai</h4>
+                <p className="text-xs text-slate-300 max-w-md mx-auto">
+                  Daftar profil pimpinan, pejabat struktural, dan staf aparatur sipil negara Bapperida Provinsi Papua Selatan dapat ditambahkan melalui Portal Admin.
+                </p>
+              </div>
+            ) : (
+              <div className="relative z-10 space-y-12">
+                {(() => {
+                  let globalCounter = 0;
 
-                return HIERARCHY_SECTIONS.map(section => {
-                  if (employeeCategory !== 'Semua' && employeeCategory !== section.category) {
-                    return null;
-                  }
+                  return HIERARCHY_SECTIONS.map(section => {
+                    if (employeeCategory !== 'Semua' && employeeCategory !== section.category) {
+                      return null;
+                    }
 
-                  const sectionEmployees = filteredEmployees.filter(
-                    emp => emp.positionCategory === section.category
-                  );
+                    const sectionEmployees = filteredEmployees.filter(
+                      emp => emp.positionCategory === section.category
+                    );
 
-                  if (sectionEmployees.length === 0 && employeeSearch) {
-                    return null;
-                  }
+                    if (sectionEmployees.length === 0 && employeeSearch) {
+                      return null;
+                    }
 
-                  return (
-                    <div key={section.category} className="space-y-4">
-                      {/* Section Title Divider (Gaya EBS | KEPALA BADAN |) */}
-                      <div className="flex items-center justify-center gap-4 py-2">
-                        <div className="h-px bg-gradient-to-r from-transparent via-white/25 to-white/25 flex-1 max-w-[120px] sm:max-w-xs"></div>
-                        <span className="text-amber-300 font-mono text-xs sm:text-sm tracking-widest uppercase font-black px-4 py-1.5 rounded-full bg-white/10 border border-amber-300/30 shadow-xs">
-                          | {section.title.toUpperCase()} |
-                        </span>
-                        <div className="h-px bg-gradient-to-l from-transparent via-white/25 to-white/25 flex-1 max-w-[120px] sm:max-w-xs"></div>
+                    return (
+                      <div key={section.category} className="space-y-4">
+                        {/* Section Title Divider (Gaya EBS | KEPALA BADAN |) */}
+                        <div className="flex items-center justify-center gap-4 py-2">
+                          <div className="h-px bg-gradient-to-r from-transparent via-white/25 to-white/25 flex-1 max-w-[120px] sm:max-w-xs"></div>
+                          <span className="text-amber-300 font-mono text-xs sm:text-sm tracking-widest uppercase font-black px-4 py-1.5 rounded-full bg-white/10 border border-amber-300/30 shadow-xs">
+                            | {section.title.toUpperCase()} |
+                          </span>
+                          <div className="h-px bg-gradient-to-l from-transparent via-white/25 to-white/25 flex-1 max-w-[120px] sm:max-w-xs"></div>
+                        </div>
+
+                        {/* Alternating Zig-Zag Items */}
+                        {sectionEmployees.length > 0 ? (
+                          <div className="space-y-4">
+                            {sectionEmployees.map(emp => {
+                              const rowIndex = globalCounter++;
+                              return (
+                                <EmployeeZigzagRow
+                                  key={emp.id}
+                                  employee={emp}
+                                  index={rowIndex}
+                                  isLeader={section.isLeader}
+                                />
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="p-8 text-center bg-white/5 rounded-2xl border border-dashed border-white/15">
+                            <p className="text-xs text-slate-400">
+                              Belum ada pegawai terdaftar pada klasifikasi {section.title}.
+                            </p>
+                          </div>
+                        )}
                       </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
 
-                      {/* Alternating Zig-Zag Items */}
-                      {sectionEmployees.length > 0 ? (
-                        <div className="space-y-4">
-                          {sectionEmployees.map(emp => {
-                            const rowIndex = globalCounter++;
-                            return (
-                              <EmployeeZigzagRow
-                                key={emp.id}
-                                employee={emp}
-                                index={rowIndex}
-                                isLeader={section.isLeader}
-                              />
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="p-8 text-center bg-white/5 rounded-2xl border border-dashed border-white/15">
-                          <p className="text-xs text-slate-400">
-                            Belum ada pegawai terdaftar pada klasifikasi {section.title}.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-
-            {/* Empty State */}
-            {filteredEmployees.length === 0 && (
+            {/* Empty State when search has no match */}
+            {employees.length > 0 && filteredEmployees.length === 0 && (
               <div className="relative z-10 p-12 text-center bg-white/5 rounded-3xl border border-white/15 space-y-4">
                 <Users className="w-12 h-12 text-slate-400 mx-auto" />
                 <h4 className="text-base font-bold text-white">Tidak ada pegawai ditemukan</h4>

@@ -79,12 +79,20 @@ export function HomeView({
                   <div className="w-full max-w-[260px] sm:max-w-[290px] flex flex-col items-center">
                     {/* Clean Frame Foto */}
                     <div className="w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xs relative">
-                      <img
-                        src={settings.leaderPhoto}
-                        alt={`Foto Profil ${settings.leaderName}`}
-                        className="w-full aspect-[3/4] object-cover object-top"
-                        referrerPolicy="no-referrer"
-                      />
+                      {settings.leaderPhoto ? (
+                        <img
+                          src={settings.leaderPhoto}
+                          alt={`Foto Profil ${settings.leaderName}`}
+                          className="w-full aspect-[3/4] object-cover object-top"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-full aspect-[3/4] flex flex-col items-center justify-center bg-gradient-to-b from-slate-100 to-slate-200 text-slate-400 p-6 text-center">
+                          <Users className="w-16 h-16 text-[#0f3d5c]/30 mb-2" />
+                          <span className="text-xs font-bold text-slate-700">Pimpinan Bapperida</span>
+                          <span className="text-[10px] text-slate-500 mt-0.5">Provinsi Papua Selatan</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Identitas Pimpinan di Bawah Foto (Jelas & Rapi) */}
@@ -383,36 +391,44 @@ export function HomeView({
               </button>
             </div>
 
-            <StaggerContainer staggerDelay={0.08} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {highlightedDocs.map((doc) => (
-                <StaggerItem key={doc.id} variant="fade-up">
-                  <div
-                    onClick={() => onSelectDocument(doc)}
-                    className="bg-white p-5 rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer flex flex-col justify-between h-full"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900">
-                          {doc.category}
-                        </span>
-                        <span className="text-xs text-slate-500 font-medium">Tahun {doc.year}</span>
+            {highlightedDocs.length > 0 ? (
+              <StaggerContainer staggerDelay={0.08} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {highlightedDocs.map((doc) => (
+                  <StaggerItem key={doc.id} variant="fade-up">
+                    <div
+                      onClick={() => onSelectDocument(doc)}
+                      className="bg-white p-5 rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer flex flex-col justify-between h-full"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900">
+                            {doc.category}
+                          </span>
+                          <span className="text-xs text-slate-500 font-medium">Tahun {doc.year}</span>
+                        </div>
+                        <h4 className="font-bold text-sm text-slate-900 hover:text-[#0f3d5c] line-clamp-2">
+                          {doc.title}
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                          {doc.description}
+                        </p>
                       </div>
-                      <h4 className="font-bold text-sm text-slate-900 hover:text-[#0f3d5c] line-clamp-2">
-                        {doc.title}
-                      </h4>
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                        {doc.description}
-                      </p>
-                    </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                      <span>Ukuran: {doc.fileSize}</span>
-                      <span className="font-bold text-[#0f3d5c]">Lihat & Unduh PDF →</span>
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                        <span>Ukuran: {doc.fileSize}</span>
+                        <span className="font-bold text-[#0f3d5c]">Lihat & Unduh PDF →</span>
+                      </div>
                     </div>
-                  </div>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            ) : (
+              <div className="bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center space-y-2">
+                <FileText className="w-8 h-8 text-slate-400 mx-auto" />
+                <p className="text-sm font-semibold text-slate-700">Belum Ada Dokumen Perencanaan yang Dipublikasikan</p>
+                <p className="text-xs text-slate-500">Dokumen resmi RPJPD, RKPD, dan Renstra akan muncul di sini setelah diunggah melalui Portal Admin.</p>
+              </div>
+            )}
           </div>
         </ScrollReveal>
       </section>
@@ -439,43 +455,51 @@ export function HomeView({
               </button>
             </div>
 
-            <StaggerContainer staggerDelay={0.09} className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {latestArticles.map((art) => (
-                <StaggerItem key={art.id} variant="fade-up">
-                  <div
-                    onClick={() => onSelectArticle(art)}
-                    className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer flex flex-col group h-full"
-                  >
-                    <div className="aspect-video w-full overflow-hidden bg-slate-100">
-                      <img
-                        src={art.imageUrl}
-                        alt={art.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
-                          <span className="font-semibold text-amber-700">{art.category}</span>
-                          <span>{art.publishedAt}</span>
+            {latestArticles.length > 0 ? (
+              <StaggerContainer staggerDelay={0.09} className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {latestArticles.map((art) => (
+                  <StaggerItem key={art.id} variant="fade-up">
+                    <div
+                      onClick={() => onSelectArticle(art)}
+                      className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer flex flex-col group h-full"
+                    >
+                      <div className="aspect-video w-full overflow-hidden bg-slate-100">
+                        <img
+                          src={art.imageUrl}
+                          alt={art.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
+                            <span className="font-semibold text-amber-700">{art.category}</span>
+                            <span>{art.publishedAt}</span>
+                          </div>
+                          <h4 className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-[#0f3d5c] line-clamp-2 leading-snug">
+                            {art.title}
+                          </h4>
+                          <p className="text-xs text-slate-600 mt-1.5 line-clamp-2">
+                            {art.summary}
+                          </p>
                         </div>
-                        <h4 className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-[#0f3d5c] line-clamp-2 leading-snug">
-                          {art.title}
-                        </h4>
-                        <p className="text-xs text-slate-600 mt-1.5 line-clamp-2">
-                          {art.summary}
-                        </p>
-                      </div>
-                      <div className="mt-3 pt-2 border-t border-slate-100 text-xs font-semibold text-[#0f3d5c] flex items-center justify-between">
-                        <span>Baca Selengkapnya</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
+                        <div className="mt-3 pt-2 border-t border-slate-100 text-xs font-semibold text-[#0f3d5c] flex items-center justify-between">
+                          <span>Baca Selengkapnya</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            ) : (
+              <div className="bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center space-y-2">
+                <FileText className="w-8 h-8 text-slate-400 mx-auto" />
+                <p className="text-sm font-semibold text-slate-700">Belum Ada Berita atau Siaran Pers</p>
+                <p className="text-xs text-slate-500">Berita dan kegiatan kedinasan terbaru akan tampil di sini setelah ditambahkan melalui Portal Admin.</p>
+              </div>
+            )}
           </ScrollReveal>
 
           {/* Agenda Mendatang (4 Cols) - Slide from Right */}
@@ -497,39 +521,47 @@ export function HomeView({
               </button>
             </div>
 
-            <StaggerContainer staggerDelay={0.08} className="space-y-3">
-              {upcomingAgendas.map((ag) => {
-                const [year, month, day] = ag.date.split('-');
-                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
-                const monthLabel = monthNames[parseInt(month, 10) - 1] || 'Bln';
+            {upcomingAgendas.length > 0 ? (
+              <StaggerContainer staggerDelay={0.08} className="space-y-3">
+                {upcomingAgendas.map((ag) => {
+                  const [year, month, day] = ag.date.split('-');
+                  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+                  const monthLabel = monthNames[parseInt(month, 10) - 1] || 'Bln';
 
-                return (
-                  <StaggerItem key={ag.id} variant="fade-left">
-                    <div
-                      onClick={() => setActivePage('agenda')}
-                      className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer flex gap-3.5 items-start"
-                    >
-                      <div className="w-14 h-14 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center shrink-0 text-center">
-                        <span className="text-lg font-black text-[#0f3d5c] leading-none">{day}</span>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase mt-0.5">{monthLabel} {year}</span>
-                      </div>
-                      <div className="min-w-0">
-                        <span className="inline-block px-2 py-0.5 text-[9px] font-bold rounded bg-blue-50 text-[#0f3d5c] mb-1">
-                          {ag.category}
-                        </span>
-                        <h5 className="text-xs font-bold text-slate-900 leading-snug line-clamp-2">
-                          {ag.title}
-                        </h5>
-                        <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-1">
-                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span className="truncate">{ag.location}</span>
+                  return (
+                    <StaggerItem key={ag.id} variant="fade-left">
+                      <div
+                        onClick={() => setActivePage('agenda')}
+                        className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-[#0f3d5c] transition cursor-pointer flex gap-3.5 items-start"
+                      >
+                        <div className="w-14 h-14 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center shrink-0 text-center">
+                          <span className="text-lg font-black text-[#0f3d5c] leading-none">{day}</span>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase mt-0.5">{monthLabel} {year}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="inline-block px-2 py-0.5 text-[9px] font-bold rounded bg-blue-50 text-[#0f3d5c] mb-1">
+                            {ag.category}
+                          </span>
+                          <h5 className="text-xs font-bold text-slate-900 leading-snug line-clamp-2">
+                            {ag.title}
+                          </h5>
+                          <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-1">
+                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span className="truncate">{ag.location}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </StaggerItem>
-                );
-              })}
-            </StaggerContainer>
+                    </StaggerItem>
+                  );
+                })}
+              </StaggerContainer>
+            ) : (
+              <div className="bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center space-y-2">
+                <Calendar className="w-8 h-8 text-slate-400 mx-auto" />
+                <p className="text-sm font-semibold text-slate-700">Belum Ada Agenda Mendatang</p>
+                <p className="text-xs text-slate-500">Jadwal kegiatan kedinasan atau Musrenbang akan muncul di sini.</p>
+              </div>
+            )}
           </ScrollReveal>
         </div>
       </section>
