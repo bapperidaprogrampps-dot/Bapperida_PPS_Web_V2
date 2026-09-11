@@ -610,7 +610,8 @@ app.post('/api/vps/seed', (req, res) => {
 // VITE MIDDLEWARE (Dev) & STATIC FILES (Production)
 // -------------------------------------------------------------
 async function startServer() {
-  const isDev = process.env.NODE_ENV !== 'production' && fs.existsSync(path.join(process.cwd(), 'vite.config.ts'));
+  const hasDist = fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'));
+  const isDev = process.env.NODE_ENV === 'development' || (!hasDist && fs.existsSync(path.join(process.cwd(), 'vite.config.ts')));
 
   if (isDev) {
     const { createServer: createViteServer } = await import('vite');

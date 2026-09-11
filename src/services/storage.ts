@@ -59,23 +59,6 @@ if (typeof window !== 'undefined') {
   } catch (e) {
     // ignore
   }
-
-  // 3. Pembersihan otomatis dummy data lawas di browser pengunjung
-  try {
-    const DUMMY_CLEANED_FLAG = 'bapperida_pps_dummy_data_purged_v2';
-    if (!localStorage.getItem(DUMMY_CLEANED_FLAG)) {
-      localStorage.setItem(KEYS.ARTICLES, JSON.stringify([]));
-      localStorage.setItem(KEYS.DOCUMENTS, JSON.stringify([]));
-      localStorage.setItem(KEYS.COMPLAINTS, JSON.stringify([]));
-      localStorage.setItem(KEYS.AGENDAS, JSON.stringify([]));
-      localStorage.setItem(KEYS.GALLERY, JSON.stringify([]));
-      localStorage.setItem(KEYS.EMPLOYEES, JSON.stringify([]));
-      localStorage.setItem(KEYS.INFO_REQUESTS, JSON.stringify([]));
-      localStorage.setItem(DUMMY_CLEANED_FLAG, 'true');
-    }
-  } catch (e) {
-    console.warn('Gagal membersihkan cache dummy data lokal:', e);
-  }
 }
 
 export const StorageService = {
@@ -83,7 +66,10 @@ export const StorageService = {
   getArticles(): NewsArticle[] {
     try {
       const data = localStorage.getItem(KEYS.ARTICLES);
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
     } catch {
       // ignore
     }
@@ -138,7 +124,10 @@ export const StorageService = {
   getDocuments(): PlanningDocument[] {
     try {
       const data = localStorage.getItem(KEYS.DOCUMENTS);
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
     } catch {
       // ignore
     }
@@ -194,7 +183,10 @@ export const StorageService = {
   getComplaints(): Complaint[] {
     try {
       const data = localStorage.getItem(KEYS.COMPLAINTS);
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
     } catch {
       // ignore
     }
@@ -255,7 +247,10 @@ export const StorageService = {
   getAgendas(): AgendaEvent[] {
     try {
       const data = localStorage.getItem(KEYS.AGENDAS);
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
     } catch {
       // ignore
     }
@@ -301,7 +296,10 @@ export const StorageService = {
   getGallery(): GalleryItem[] {
     try {
       const data = localStorage.getItem(KEYS.GALLERY);
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
     } catch {
       // ignore
     }
@@ -653,7 +651,10 @@ export const StorageService = {
   getEmployees(): EmployeeProfile[] {
     try {
       const data = localStorage.getItem(KEYS.EMPLOYEES);
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
     } catch {
       // ignore
     }

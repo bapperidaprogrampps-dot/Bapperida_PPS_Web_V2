@@ -3,12 +3,14 @@
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
 
-  # Allow direct access to uploaded media and static files
+  # Allow direct access to uploaded media, assets, and static files
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
+
+  # Direct access to static assets
+  RewriteRule ^assets/(.*)$ assets/$1 [L]
 
   # Allow direct execution of Hostinger PHP upload & data handlers
   RewriteRule ^api-hostinger/(.*)$ api-hostinger/$1 [L]

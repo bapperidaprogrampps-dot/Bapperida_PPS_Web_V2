@@ -1,0 +1,3 @@
+# SPA Redirect for Netlify & Cloudflare Pages
+/assets/*  /assets/:splat  200
+/*         /index.html     200

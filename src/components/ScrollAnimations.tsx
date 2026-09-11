@@ -94,7 +94,7 @@ export function ScrollReveal({
   distance = 32,
   className = '',
   id,
-  margin = '-40px',
+  margin = '0px',
   once = true
 }: ScrollRevealProps) {
   const getInitial = () => {
@@ -169,7 +169,7 @@ export function StaggerContainer({
   staggerDelay = 0.09,
   className = '',
   id,
-  margin = '-40px',
+  margin = '0px',
   once = true
 }: StaggerContainerProps) {
   const containerVariants: Variants = {
