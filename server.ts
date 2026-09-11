@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
-import { createServer as createViteServer } from 'vite';
 import { 
   initialArticles, 
   initialDocuments, 
@@ -12,7 +11,7 @@ import {
   initialAgendas, 
   initialGallery, 
   initialComplaints 
-} from './src/data/mockData';
+} from './server/initialData.ts';
 import { 
   getMysqlPool, 
   testMysqlConnection, 
@@ -22,10 +21,10 @@ import {
   getMysqlConfig,
   resetMysqlConfig,
   updateMysqlConfig
-} from './server/mysql';
+} from './server/mysql.ts';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // Base uploads directory on server (suitable for Hostinger VPS / Cloud or Node container)
 const UPLOADS_BASE_DIR = path.join(process.cwd(), 'uploads');
@@ -614,6 +613,7 @@ async function startServer() {
   const isDev = process.env.NODE_ENV !== 'production' && fs.existsSync(path.join(process.cwd(), 'vite.config.ts'));
 
   if (isDev) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'
