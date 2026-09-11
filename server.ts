@@ -24,7 +24,11 @@ import {
 } from './server/mysql.ts';
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+// Support numeric ports AND Passenger Unix domain socket paths / pipes (Hostinger / cPanel)
+const rawPort = process.env.PORT || 3000;
+const isNumericPort = !isNaN(Number(rawPort)) && String(rawPort).trim() !== '';
+const PORT: number | string = isNumericPort ? Number(rawPort) : rawPort;
 
 // Base uploads directory on server (suitable for Hostinger VPS / Cloud or Node container)
 const UPLOADS_BASE_DIR = path.join(process.cwd(), 'uploads');
@@ -32,16 +36,20 @@ const DATA_BASE_DIR = path.join(UPLOADS_BASE_DIR, 'data');
 const CATEGORIES = ['documents', 'images', 'videos', 'general'] as const;
 type UploadCategory = typeof CATEGORIES[number];
 
-// Ensure upload and data directories exist
-CATEGORIES.forEach((cat) => {
-  const dir = path.join(UPLOADS_BASE_DIR, cat);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
+// Ensure upload and data directories exist safely
+try {
+  CATEGORIES.forEach((cat) => {
+    const dir = path.join(UPLOADS_BASE_DIR, cat);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
 
-if (!fs.existsSync(DATA_BASE_DIR)) {
-  fs.mkdirSync(DATA_BASE_DIR, { recursive: true });
+  if (!fs.existsSync(DATA_BASE_DIR)) {
+    fs.mkdirSync(DATA_BASE_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.warn('[Storage Init] Directory creation notice:', err);
 }
 
 // Inisialisasi otomatis seluruh berkas JSON dasar ke /uploads/data/ agar VPS & sinkronisasi langsung siap pakai
@@ -634,9 +642,27 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server Bapperida berjalan pada port ${PORT} (Hostinger Ready)`);
-  });
+  // Gracefully handle Passenger unix sockets vs standard numeric ports
+  if (typeof PORT === 'number') {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server Bapperida berjalan pada port ${PORT} (Hostinger Ready)`);
+    });
+  } else {
+    // Unix domain socket or named pipe provided by Passenger / cPanel
+    app.listen(PORT, () => {
+      console.log(`Server Bapperida terhubung ke socket Passenger: ${PORT}`);
+    });
+  }
 }
 
-startServer();
+// Global safety guards preventing server crashes from yielding 503 errors
+process.on('uncaughtException', (err) => {
+  console.error('[CRITICAL] Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRITICAL] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+startServer().catch((err) => {
+  console.error('[CRITICAL] Error starting Bapperida Server:', err);
+});
