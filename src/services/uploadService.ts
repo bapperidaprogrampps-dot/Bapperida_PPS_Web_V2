@@ -80,6 +80,18 @@ export const UploadService = {
   },
 
   /**
+   * Mereset konfigurasi penyimpanan server Hostinger ke status bersih
+   */
+  resetStorageConfig(): ServerStorageConfig {
+    try {
+      localStorage.removeItem(STORAGE_CONFIG_KEY);
+    } catch (e) {
+      console.error('Gagal mereset storage config:', e);
+    }
+    return DEFAULT_CONFIG;
+  },
+
+  /**
    * Cek koneksi dan status penyimpanan server Hostinger
    */
   async checkServerStorageStatus(): Promise<ServerStorageStatus> {

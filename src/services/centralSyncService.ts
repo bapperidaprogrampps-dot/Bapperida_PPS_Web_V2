@@ -580,6 +580,42 @@ class CentralSyncServiceManager {
       };
     }
   }
+
+  /**
+   * Reset seluruh konfigurasi database MySQL ke status bersih/kosong
+   */
+  public async resetMysqlConfig(): Promise<{ success: boolean; message: string }> {
+    const baseUrl = this.getApiBaseUrl();
+    try {
+      const res = await fetch(`${baseUrl}/api/mysql/reset`, { method: 'POST' });
+      if (res.ok) {
+        return await res.json();
+      }
+      return { success: false, message: `Server merespons HTTP ${res.status}` };
+    } catch (e: any) {
+      return { success: false, message: e.message || 'Gagal menghubungi server untuk reset database' };
+    }
+  }
+
+  /**
+   * Simpan konfigurasi database MySQL baru
+   */
+  public async updateMysqlConfig(cfg: { host?: string; port?: number; user?: string; password?: string; database?: string }): Promise<{ success: boolean; message: string; status?: any }> {
+    const baseUrl = this.getApiBaseUrl();
+    try {
+      const res = await fetch(`${baseUrl}/api/mysql/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cfg)
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+      return { success: false, message: `Server merespons HTTP ${res.status}` };
+    } catch (e: any) {
+      return { success: false, message: e.message || 'Gagal mengirim konfigurasi database ke server' };
+    }
+  }
 }
 
 export const CentralSyncService = new CentralSyncServiceManager();

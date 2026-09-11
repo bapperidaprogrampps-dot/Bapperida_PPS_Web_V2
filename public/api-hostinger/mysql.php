@@ -17,15 +17,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Konfigurasi Database MySQL Hostinger
+// Konfigurasi Database MySQL Hostinger (Direset Bersih - Siap Diisi)
 // Sesuaikan dengan data database yang Anda buat di cPanel / hPanel Hostinger
-$dbHost = getenv('DB_HOST') ?: 'localhost';
+$dbHost = getenv('DB_HOST') ?: '';
 $dbPort = getenv('DB_PORT') ?: '3306';
-$dbUser = getenv('DB_USER') ?: 'root';
+$dbUser = getenv('DB_USER') ?: '';
 $dbPass = getenv('DB_PASSWORD') ?: '';
-$dbName = getenv('DB_NAME') ?: 'bapperida_db';
+$dbName = getenv('DB_NAME') ?: '';
 
 function getPdoConnection($dbHost, $dbPort, $dbUser, $dbPass, $dbName) {
+    if (empty($dbHost) || empty($dbUser) || empty($dbName)) {
+        return null;
+    }
     try {
         $dsn = "mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf8mb4";
         $options = [
@@ -45,6 +48,7 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'status';
 // 1. ACTION STATUS: Cek koneksi MySQL
 if ($action === 'status') {
     if (!$pdo) {
+        $isClean = empty($dbHost) || empty($dbUser) || empty($dbName);
         echo json_encode([
             'success' => false,
             'connected' => false,
@@ -55,7 +59,9 @@ if ($action === 'status') {
                 'user' => $dbUser,
                 'database' => $dbName
             ],
-            'error' => 'Koneksi MySQL gagal. Pastikan database telah dibuat di hPanel Hostinger dan user memiliki hak akses (privileges).'
+            'error' => $isClean 
+                ? 'Pengaturan database MySQL Hostinger telah direset bersih. Parameter host, user, atau nama database belum diisi.' 
+                : 'Koneksi MySQL gagal. Pastikan database telah dibuat di hPanel Hostinger dan user memiliki hak akses (privileges).'
         ]);
         exit;
     }

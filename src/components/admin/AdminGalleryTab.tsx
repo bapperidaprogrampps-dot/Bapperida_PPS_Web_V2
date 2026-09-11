@@ -204,13 +204,19 @@ export function AdminGalleryTab({ gallery, onDataChanged, showToast }: AdminGall
               key={item.id}
               className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col group transition"
             >
-              <div className="relative aspect-video overflow-hidden bg-slate-100">
-                <img
-                  src={item.imageUrl}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  referrerPolicy="no-referrer"
-                />
+              <div className="relative aspect-video overflow-hidden bg-slate-100 flex items-center justify-center">
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                    <ImageIcon className="w-10 h-10 opacity-30" />
+                  </div>
+                )}
                 <span className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#0f3d5c]/90 text-white backdrop-blur-xs">
                   {item.category}
                 </span>

@@ -157,6 +157,11 @@ export interface AgencySettings {
   heroVideoLocation?: string;
   heroVideoCustomName?: string;
   heroVideoServerUrl?: string; // URL video di penyimpanan Hostinger (misal: /uploads/videos/hero-anim-ha.mp4)
+  // Highlight Berita Beranda
+  heroHighlightBadge?: string; // misal: 'Highlight Berita', 'Sorotan Utama Daerah'
+  heroHighlightInterval?: number; // detik rotasi (misal: 6)
+  heroHighlightArticleIds?: string[]; // ID artikel berita yang disematkan di hero
+  heroHighlightMode?: 'auto' | 'manual'; // mode otomatis terbaru atau manual pinned
 }
 
 export type StorageProvider = 'hostinger-server' | 'hostinger-php' | 'custom-url' | 'browser-offline';

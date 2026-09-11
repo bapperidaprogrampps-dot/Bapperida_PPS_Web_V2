@@ -390,7 +390,7 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
             <div className="aspect-16/9 w-full rounded-xl overflow-hidden relative bg-slate-950 border border-slate-800">
               <video
                 ref={videoRef}
-                src={videoSrc}
+                src={videoSrc || DEFAULT_REFERENCE_VIDEO}
                 poster={DEFAULT_POSTER}
                 autoPlay
                 loop

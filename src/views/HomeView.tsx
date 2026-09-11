@@ -15,7 +15,8 @@ import {
   Clock,
   Sparkles,
   Quote,
-  Award
+  Award,
+  Newspaper
 } from 'lucide-react';
 import { ActivePage, NewsArticle, PlanningDocument, AgendaEvent } from '../types';
 import { PapuaSelatanLogo, BapperidaLogo } from '../components/Logos';
@@ -64,8 +65,12 @@ export function HomeView({
         <div className="absolute bottom-[10%] left-[20%] w-[50%] h-[400px] rounded-full bg-teal-500/5 blur-[120px]"></div>
       </div>
 
-      {/* 1. Hero Banner dengan Video & Animasi Masuk Pertama */}
-      <HeroBanner setActivePage={setActivePage} />
+      {/* 1. Hero Banner dengan Highlight Berita */}
+      <HeroBanner 
+        setActivePage={setActivePage}
+        articles={articles}
+        onSelectArticle={onSelectArticle}
+      />
 
       {/* 2. Kata Sambutan Kepala Badan */}
       <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10" id="sambutan-kepala-badan">
@@ -463,13 +468,19 @@ export function HomeView({
                       onClick={() => onSelectArticle(art)}
                       className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer flex flex-col group h-full"
                     >
-                      <div className="aspect-video w-full overflow-hidden bg-slate-100">
-                        <img
-                          src={art.imageUrl}
-                          alt={art.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                          referrerPolicy="no-referrer"
-                        />
+                      <div className="aspect-video w-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                        {art.imageUrl ? (
+                          <img
+                            src={art.imageUrl}
+                            alt={art.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                            <Newspaper className="w-10 h-10 opacity-40" />
+                          </div>
+                        )}
                       </div>
                       <div className="p-4 flex-1 flex flex-col justify-between">
                         <div>

@@ -19,7 +19,9 @@ import {
   saveModuleToMysql, 
   getModuleFromMysql, 
   migrateAllJsonToMysql, 
-  getMysqlConfig 
+  getMysqlConfig,
+  resetMysqlConfig,
+  updateMysqlConfig
 } from './server/mysql';
 
 const app = express();
@@ -478,6 +480,38 @@ app.post('/api/mysql/migrate', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Gagal melakukan migrasi ke MySQL'
+    });
+  }
+});
+
+app.post('/api/mysql/reset', (req, res) => {
+  try {
+    resetMysqlConfig();
+    res.json({
+      success: true,
+      message: 'Seluruh pengaturan basis data MySQL Hostinger berhasil direset dan dikosongkan. Siap menerima konfigurasi baru.'
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal mereset konfigurasi MySQL'
+    });
+  }
+});
+
+app.post('/api/mysql/config', async (req, res) => {
+  try {
+    const { host, port, user, password, database } = req.body || {};
+    const result = await updateMysqlConfig({ host, port, user, password, database });
+    const status = await testMysqlConnection();
+    res.json({
+      ...result,
+      status
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Gagal memperbarui konfigurasi MySQL'
     });
   }
 });

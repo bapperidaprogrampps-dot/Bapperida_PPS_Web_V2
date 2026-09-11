@@ -13,7 +13,8 @@ import {
   AlertCircle,
   Loader2,
   Eye,
-  Check
+  Check,
+  Users
 } from 'lucide-react';
 import { AgencySettings } from '../../types';
 import { StorageService } from '../../services/storage';
@@ -192,13 +193,21 @@ export function AdminLeaderSpeechTab({ onDataChanged, showToast }: AdminLeaderSp
               
               {/* Box Pratinjau Foto */}
               <div className="md:col-span-4 flex flex-col items-center">
-                <div className="relative group w-44 sm:w-48 aspect-[3/4] rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-100 shadow-sm">
-                  <img
-                    src={settings.leaderPhoto}
-                    alt={settings.leaderName}
-                    className="w-full h-full object-cover object-top"
-                    referrerPolicy="no-referrer"
-                  />
+                <div className="relative group w-44 sm:w-48 aspect-[3/4] rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-100 shadow-sm flex items-center justify-center">
+                  {settings.leaderPhoto ? (
+                    <img
+                      src={settings.leaderPhoto}
+                      alt={settings.leaderName}
+                      className="w-full h-full object-cover object-top"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center text-slate-400 bg-slate-50">
+                      <Users className="w-12 h-12 text-[#0f3d5c]/30 mb-2" />
+                      <span className="text-xs font-bold text-slate-700">Foto Pimpinan</span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">Belum diunggah</span>
+                    </div>
+                  )}
 
                   {/* Loading Overlay saat upload */}
                   {isUploadingPhoto && (

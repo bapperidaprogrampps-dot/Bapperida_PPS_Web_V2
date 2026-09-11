@@ -240,12 +240,18 @@ export function AdminNewsTab({ news, onDataChanged, showToast }: AdminNewsTabPro
                   <tr key={art.id} className="hover:bg-slate-50/60 transition">
                     <td className="py-3.5 px-4 max-w-md">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={art.imageUrl}
-                          alt={art.title}
-                          className="w-14 h-11 rounded-lg object-cover border border-slate-200 shrink-0"
-                          referrerPolicy="no-referrer"
-                        />
+                        {art.imageUrl ? (
+                          <img
+                            src={art.imageUrl}
+                            alt={art.title}
+                            className="w-14 h-11 rounded-lg object-cover border border-slate-200 shrink-0"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="w-14 h-11 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-400">
+                            <Newspaper className="w-5 h-5" />
+                          </div>
+                        )}
                         <div className="min-w-0">
                           <div className="font-bold text-slate-900 line-clamp-1">{art.title}</div>
                           <div className="text-[10px] text-slate-400 mt-0.5">Penulis: {art.author}</div>

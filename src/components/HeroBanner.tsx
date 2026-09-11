@@ -1,129 +1,206 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   FileText, 
   ArrowRight, 
   ShieldCheck, 
   Building2, 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Film,
-  Clock,
-  MapPin
+  Clock, 
+  MapPin,
+  Newspaper,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Eye,
+  Tag
 } from 'lucide-react';
-import { ActivePage } from '../types';
+import { ActivePage, NewsArticle, AgencySettings } from '../types';
 import { StorageService } from '../services/storage';
 import { VideoStorageService } from '../services/videoStorage';
 import { DeerSilhouette } from './DeerSilhouette';
 
-interface HeroBannerProps {
+export interface HeroBannerProps {
   setActivePage: (page: ActivePage) => void;
+  articles?: NewsArticle[];
+  onSelectArticle?: (article: NewsArticle) => void;
 }
 
-// Video referensi pemandangan bentang alam udara & sungai tropis (representasi wilayah Anim Ha)
+// Fallback image dan video referensi latar belakang
 const DEFAULT_REFERENCE_VIDEO = 'https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-a-winding-river-through-a-forest-42880-large.mp4';
 const FALLBACK_POSTER = 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1200&q=80';
 
-export function HeroBanner({ setActivePage }: HeroBannerProps) {
+// Default artikel sorotan resmi Bapperida jika data artikel masih kosong
+const DEFAULT_HIGHLIGHT_ARTICLES: NewsArticle[] = [
+  {
+    id: 'hl-1',
+    title: 'Portal Satu Data & Perencanaan Terpadu Papua Selatan Resmi Siap Melayani 4 Kabupaten',
+    slug: 'portal-satu-data-perencanaan-terpadu-papua-selatan',
+    category: 'Pemerintahan',
+    summary: 'Bapperida Provinsi Papua Selatan mengintegrasikan seluruh dokumen perencanaan daerah, riset inovasi, dan layanan aspirasi masyarakat Anim Ha.',
+    content: 'Pemerintah Provinsi Papua Selatan melalui Badan Perencanaan Pembangunan, Riset dan Inovasi Daerah (Bapperida) meluncurkan portal resmi satu data perencanaan terpadu...',
+    author: 'Humas Bapperida PPS',
+    publishedAt: '10 September 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1200&q=80',
+    views: 342,
+    status: 'published',
+    tags: ['Bapperida', 'Papua Selatan', 'Anim Ha', 'Perencanaan']
+  },
+  {
+    id: 'hl-2',
+    title: 'Akselerasi Penyusunan Dokumen RPJPD & RPJMD Kawasan Sentra Pertanian dan Gambut Anim Ha',
+    slug: 'akselerasi-penyusunan-dokumen-rpjpd-rpjmd',
+    category: 'Pembangunan',
+    summary: 'Prioritas pembangunan diarahkan pada peningkatan konektivitas Merauke, Boven Digoel, Mappi, dan Asmat serta ketahanan pangan lokal.',
+    content: 'Penyusunan Rencana Pembangunan Daerah memprioritaskan swasembada pangan terpadu dan hilirisasi potensi lokal Orang Asli Papua...',
+    author: 'Bidang Perencanaan Makro',
+    publishedAt: '08 September 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80',
+    views: 285,
+    status: 'published',
+    tags: ['RPJPD', 'Pertanian', 'Merauke', 'Pembangunan']
+  },
+  {
+    id: 'hl-3',
+    title: 'Pengembangan Inovasi Hilirisasi Sagu Mappi dan Ekosistem Riset Terapan BRIDA Papua Selatan',
+    slug: 'pengembangan-inovasi-hilirisasi-sagu-mappi',
+    category: 'Riset & Inovasi',
+    summary: 'Kerja sama riset aplikatif untuk meningkatkan nilai tambah komoditas unggulan daerah dan perlindungan kearifan lokal masyarakat adat.',
+    content: 'Bidang Riset dan Inovasi Daerah memfasilitasi riset aplikatif peningkatan nilai tambah komoditas lokal dan perlindungan ekosistem...',
+    author: 'Bidang Riset & Inovasi',
+    publishedAt: '05 September 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&w=1200&q=80',
+    views: 219,
+    status: 'published',
+    tags: ['BRIDA', 'Riset', 'Sagu Mappi', 'Inovasi']
+  }
+];
+
+export function HeroBanner({ setActivePage, articles = [], onSelectArticle }: HeroBannerProps) {
+  const [agencySettings, setAgencySettings] = useState<AgencySettings>(() => StorageService.getAgencySettings());
   const [videoSrc, setVideoSrc] = useState<string>(DEFAULT_REFERENCE_VIDEO);
-  const [isPlaying, setIsPlaying] = useState<boolean>(true);
-  const [isMuted, setIsMuted] = useState<boolean>(true);
-  const [videoTitle, setVideoTitle] = useState<string>('Pusat Perumusan Kebijakan & Pengendalian Pembangunan Wilayah Anim Ha');
-  const [videoLocation, setVideoLocation] = useState<string>('Salor, Merauke — 4 Kabupaten (Merauke, Boven Digoel, Mappi, Asmat)');
-  const [isCustomVideo, setIsCustomVideo] = useState<boolean>(false);
   const [officeHours, setOfficeHours] = useState<string>('Jam 08.00 Pagi s/d 16.00 Sore WIT (Senin – Jumat)');
   const [officeAddress, setOfficeAddress] = useState<string>('Kompleks Pusat Pemerintahan Terpadu Pemerintah Provinsi Papua Selatan, Salor, Distrik Kurik, Kabupaten Merauke, Papua Selatan 99616');
 
-  const cardVideoRef = useRef<HTMLVideoElement>(null);
   const bgVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Load video source and settings
+  // Filter artikel yang telah diterbitkan (published)
+  const publishedArticles = (articles || []).filter(a => a.status === 'published' || !a.status);
+
+  // Ambil artikel highlight berdasarkan mode otomatis atau manual dari panel admin
+  let dynamicArticles: NewsArticle[] = [];
+  if (agencySettings.heroHighlightMode === 'manual' && agencySettings.heroHighlightArticleIds && agencySettings.heroHighlightArticleIds.length > 0) {
+    agencySettings.heroHighlightArticleIds.forEach(id => {
+      const found = publishedArticles.find(n => n.id === id);
+      if (found) dynamicArticles.push(found);
+    });
+    if (dynamicArticles.length === 0) {
+      dynamicArticles = publishedArticles.slice(0, 5);
+    }
+  } else {
+    dynamicArticles = publishedArticles.slice(0, 5);
+  }
+
+  const highlightList: NewsArticle[] = dynamicArticles.length > 0 
+    ? dynamicArticles 
+    : DEFAULT_HIGHLIGHT_ARTICLES;
+
+  const badgeText = agencySettings.heroHighlightBadge || 'Highlight Berita';
+  const rotationSeconds = agencySettings.heroHighlightInterval !== undefined ? agencySettings.heroHighlightInterval : 6;
+
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+
+  // Pastikan currentIndex selalu valid jika panjang list berubah
+  useEffect(() => {
+    if (currentIndex >= highlightList.length) {
+      setCurrentIndex(0);
+    }
+  }, [highlightList.length, currentIndex]);
+
+  // Rotasi otomatis sorotan berita sesuai durasi yang diatur di panel admin
+  useEffect(() => {
+    if (isPaused || highlightList.length <= 1 || rotationSeconds <= 0) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % highlightList.length);
+    }, rotationSeconds * 1000);
+    return () => clearInterval(interval);
+  }, [isPaused, highlightList.length, rotationSeconds]);
+
+  // Navigasi prev & next
+  const handlePrev = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setCurrentIndex((prev) => (prev === 0 ? highlightList.length - 1 : prev - 1));
+  };
+
+  const handleNext = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setCurrentIndex((prev) => (prev + 1) % highlightList.length);
+  };
+
+  // Navigasi ke detail berita
+  const handleArticleClick = (article: NewsArticle) => {
+    if (onSelectArticle) {
+      onSelectArticle(article);
+    } else {
+      setActivePage('berita');
+    }
+  };
+
+  // Load video latar belakang dan informasi instansi
   const loadHeroData = async () => {
     const settings = StorageService.getAgencySettings();
-    if (settings.heroVideoTitle) setVideoTitle(settings.heroVideoTitle);
-    if (settings.heroVideoLocation) setVideoLocation(settings.heroVideoLocation);
+    setAgencySettings(settings);
     if (settings.officeAddress) setOfficeAddress(settings.officeAddress);
     if (settings.officeHours) setOfficeHours(settings.officeHours);
 
-    // 1. Cek apakah ada URL video server Hostinger yang valid (bukan blob session)
     const hasValidServerUrl = settings.heroVideoServerUrl && 
       typeof settings.heroVideoServerUrl === 'string' && 
       !settings.heroVideoServerUrl.startsWith('blob:');
 
     if (hasValidServerUrl) {
       setVideoSrc(settings.heroVideoServerUrl!);
-      setIsCustomVideo(true);
       return;
     }
 
-    // 2. Cek apakah ada file video yang tersimpan di IndexedDB browser lokal
     const customBlobUrl = await VideoStorageService.getHeroVideoBlobUrl();
     if (customBlobUrl) {
       setVideoSrc(customBlobUrl);
-      setIsCustomVideo(true);
       return;
     }
 
-    // 3. Fallback ke video referensi bawaan
     setVideoSrc(DEFAULT_REFERENCE_VIDEO);
-    setIsCustomVideo(false);
   };
 
   useEffect(() => {
     loadHeroData();
 
-    // Listen for updates from the admin module and central sync
     const handleVideoUpdate = () => {
       loadHeroData();
     };
 
     window.addEventListener('hero-video-updated', handleVideoUpdate);
+    window.addEventListener('hero-highlight-updated', handleVideoUpdate);
     window.addEventListener('bapperida:data-synced', handleVideoUpdate);
     return () => {
       window.removeEventListener('hero-video-updated', handleVideoUpdate);
+      window.removeEventListener('hero-highlight-updated', handleVideoUpdate);
       window.removeEventListener('bapperida:data-synced', handleVideoUpdate);
     };
   }, []);
 
-  // Pemulihan otomatis jika sumber video bermasalah atau koneksi terputus
   const handleVideoError = async () => {
-    console.warn('Gagal memuat tayangan video dari:', videoSrc);
     if (videoSrc !== DEFAULT_REFERENCE_VIDEO) {
       const localBlob = await VideoStorageService.getHeroVideoBlobUrl();
       if (localBlob && localBlob !== videoSrc) {
         setVideoSrc(localBlob);
-        setIsCustomVideo(true);
         return;
       }
       setVideoSrc(DEFAULT_REFERENCE_VIDEO);
-      setIsCustomVideo(false);
     }
   };
 
-  // Toggle Play / Pause
-  const togglePlay = () => {
-    if (cardVideoRef.current) {
-      if (isPlaying) {
-        cardVideoRef.current.pause();
-        bgVideoRef.current?.pause();
-      } else {
-        cardVideoRef.current.play().catch(() => {});
-        bgVideoRef.current?.play().catch(() => {});
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  // Toggle Mute / Unmute
-  const toggleMute = () => {
-    if (cardVideoRef.current) {
-      const nextMuted = !isMuted;
-      cardVideoRef.current.muted = nextMuted;
-      setIsMuted(nextMuted);
-    }
-  };
+  const currentArticle = highlightList[currentIndex] || highlightList[0];
 
   return (
     <section 
@@ -137,17 +214,17 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
         transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
         className="w-full relative overflow-hidden bg-gradient-to-br from-[#092233] via-[#0f3d5c] to-[#154e74] text-white border-b border-white/10 xl:min-h-[540px] 2xl:min-h-[600px] flex flex-col justify-center"
       >
-        {/* 1. Cinematic Background Video Layer dengan Animasi Masuk Pertama */}
+        {/* 1. Cinematic Background Layer dengan Animasi Masuk */}
         <motion.div 
           initial={{ opacity: 0, scale: 1.12 }}
-          animate={{ opacity: 0.24, scale: 1 }}
+          animate={{ opacity: 0.22, scale: 1 }}
           transition={{ duration: 1.6, ease: "easeOut" }}
           className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0"
           aria-hidden="true"
         >
           <video 
             ref={bgVideoRef}
-            src={videoSrc}
+            src={videoSrc || DEFAULT_REFERENCE_VIDEO}
             poster={FALLBACK_POSTER}
             autoPlay
             loop
@@ -243,7 +320,7 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
               >
                 <button
                   onClick={() => setActivePage('dokumen')}
-                  className="px-4 sm:px-5 py-2.5 rounded-lg font-bold text-xs sm:text-sm bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-2 group cursor-pointer"
+                  className="px-4 sm:px-5 py-2.5 rounded-lg font-bold text-xs sm:text-sm bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-2 group cursor-pointer shadow-sm"
                   id="hero-cta-dokumen"
                 >
                   <FileText className="w-4 h-4 text-slate-950" />
@@ -262,100 +339,186 @@ export function HeroBanner({ setActivePage }: HeroBannerProps) {
               </motion.div>
             </motion.div>
 
-            {/* SISI KANAN: Panel Showcase Video Interaktif (Animasi Masuk Slide & Scale) */}
+            {/* SISI KANAN: Panel Showcase Highlight Berita (Menggantikan Video Sesuai Permintaan) */}
             <motion.div 
-              initial={{ opacity: 0, scale: 0.92, x: 20 }}
+              initial={{ opacity: 0, scale: 0.94, x: 20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               transition={{ duration: 0.85, delay: 0.28, ease: [0.16, 1, 0.3, 1] }}
               className="lg:col-span-5"
             >
-              <div className="relative rounded-2xl overflow-hidden border-2 border-white/25 bg-slate-950/85 backdrop-blur-md group max-w-lg mx-auto lg:max-w-none">
-                
-                {/* Status Header Badge Video */}
-                <div className="absolute top-2.5 left-2.5 right-2.5 z-30 flex items-center justify-between pointer-events-none">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/80 border border-white/20 backdrop-blur-md text-[10px] sm:text-[11px] font-semibold text-white pointer-events-auto">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-3.5"></span>
-                    <Film className="w-3 h-3 text-amber-400 ml-1" />
-                    <span>{isCustomVideo ? 'Video Resmi Wilayah Anim Ha' : 'Video Profil Daerah (Referensi)'}</span>
-                  </div>
-
-                  <div className="flex items-center gap-1 pointer-events-auto">
-                    {/* Audio Mute/Unmute */}
-                    <button
-                      onClick={toggleMute}
-                      className="p-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/20 transition cursor-pointer"
-                      title={isMuted ? "Bunyikan Suara Video" : "Bisukan Suara Video"}
-                      id="hero-mute-toggle-btn"
-                    >
-                      {isMuted ? <VolumeX className="w-3.5 h-3.5 text-amber-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
-                    </button>
-
-                    {/* Play/Pause */}
-                    <button
-                      onClick={togglePlay}
-                      className="p-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/20 transition cursor-pointer"
-                      title={isPlaying ? "Jeda Video" : "Putar Video"}
-                      id="hero-play-toggle-btn"
-                    >
-                      {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 text-amber-400" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Video Player Display dengan Proporsi Terukur (Aspect 16:9) */}
-                <div className="aspect-video w-full relative overflow-hidden bg-slate-950">
-                  <video
-                    ref={cardVideoRef}
-                    src={videoSrc}
-                    poster={FALLBACK_POSTER}
-                    autoPlay
-                    loop
-                    muted={isMuted}
-                    playsInline
-                    onError={handleVideoError}
-                    className="w-full h-full object-cover group-hover:scale-103 transition duration-700"
-                  />
-
-                  {/* Gradient Overlay for bottom text legibility */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/45 to-transparent pointer-events-none"></div>
-
-                  {/* Floating Big Play Button if paused */}
-                  {!isPlaying && (
-                    <div 
-                      onClick={togglePlay}
-                      className="absolute inset-0 flex items-center justify-center bg-slate-950/40 backdrop-blur-[2px] cursor-pointer z-20"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-amber-400/95 text-slate-950 flex items-center justify-center hover:scale-110 transition">
-                        <Play className="w-6 h-6 ml-0.5 fill-current" />
-                      </div>
+              <div 
+                id="hero-highlight-berita-showcase"
+                className="relative rounded-2xl overflow-hidden border-2 border-white/25 bg-slate-950/90 backdrop-blur-md group max-w-lg mx-auto lg:max-w-none shadow-2xl transition duration-300"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+              >
+                {/* Header Showcase: Label Sorotan & Kontrol Navigasi Carousel */}
+                <div className="px-4 py-3 bg-slate-900/90 border-b border-white/15 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                    </span>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                      <Newspaper className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{badgeText}</span>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Navigasi Slide & Indikator */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono text-slate-300 bg-white/10 px-2 py-0.5 rounded-md font-bold">
+                      <span className="text-amber-400">{currentIndex + 1}</span> / {highlightList.length}
+                    </span>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={handlePrev}
+                        className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition cursor-pointer"
+                        title="Berita Sebelumnya"
+                        aria-label="Berita Sebelumnya"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition cursor-pointer"
+                        title="Berita Selanjutnya"
+                        aria-label="Berita Selanjutnya"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Video Caption & Agency Info */}
-                <div className="p-4 space-y-1.5 text-white bg-slate-950/90 border-t border-white/10">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 text-[11px] text-amber-400 font-semibold truncate">
+                {/* Body Showcase: Gambar Berita dengan Badge Kategori */}
+                <div 
+                  className="relative aspect-video sm:aspect-[16/10] w-full overflow-hidden bg-slate-900 cursor-pointer group"
+                  onClick={() => handleArticleClick(currentArticle)}
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={currentArticle.id || currentIndex}
+                      src={currentArticle.imageUrl || FALLBACK_POSTER}
+                      alt={currentArticle.title}
+                      initial={{ opacity: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = FALLBACK_POSTER;
+                      }}
+                      referrerPolicy="no-referrer"
+                    />
+                  </AnimatePresence>
+
+                  {/* Gradient Overlay for Legibility */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
+
+                  {/* Badge Kategori Berita di Kiri Atas */}
+                  <div className="absolute top-3 left-3 z-10">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-amber-400 text-slate-950 shadow-md flex items-center gap-1">
+                      <Tag className="w-3 h-3 text-slate-950" />
+                      <span>{currentArticle.category || 'Berita'}</span>
+                    </span>
+                  </div>
+
+                  {/* Tanggal & Penayangan di Kanan Atas */}
+                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-950/75 backdrop-blur-md text-slate-200 border border-white/15 flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-amber-400" />
+                      <span>{currentArticle.publishedAt || 'Terbaru'}</span>
+                    </span>
+                  </div>
+
+                  {/* Floating Action Hint */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-slate-950/40 backdrop-blur-xs transition duration-300 pointer-events-none">
+                    <div className="px-3.5 py-1.5 rounded-full bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition duration-300">
+                      <span>Buka Artikel</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deskripsi & Ringkasan Konten Berita */}
+                <div className="p-4 sm:p-5 space-y-2.5 text-white bg-slate-950/95 border-t border-white/10">
+                  <div className="flex items-center justify-between text-[11px] text-amber-400 font-semibold">
+                    <div className="flex items-center gap-1.5 truncate">
                       <Building2 className="w-3.5 h-3.5 shrink-0" />
-                      <span>Kompleks Kantor Pemerintahan Terpadu PPS</span>
+                      <span className="truncate">{currentArticle.author || 'Bapperida Provinsi Papua Selatan'}</span>
                     </div>
-                    <span className="text-[10px] text-slate-400 shrink-0 font-medium">
-                      Salor, Merauke
-                    </span>
+                    {currentArticle.views !== undefined && currentArticle.views > 0 && (
+                      <span className="flex items-center gap-1 text-[10px] text-slate-400 shrink-0 font-medium ml-2">
+                        <Eye className="w-3 h-3 text-slate-400" />
+                        <span>{currentArticle.views} dibaca</span>
+                      </span>
+                    )}
                   </div>
 
-                  <h4 className="text-xs sm:text-sm font-bold leading-snug text-slate-100 line-clamp-1">
-                    {videoTitle}
-                  </h4>
+                  {/* Judul Berita Utama */}
+                  <h3 
+                    onClick={() => handleArticleClick(currentArticle)}
+                    className="text-xs sm:text-sm md:text-base font-bold leading-snug text-slate-100 line-clamp-2 hover:text-amber-300 transition cursor-pointer"
+                    title={currentArticle.title}
+                  >
+                    {currentArticle.title}
+                  </h3>
 
-                  <div className="flex items-center justify-between pt-1 border-t border-white/10 text-[10px] text-slate-400">
-                    <span className="truncate">{videoLocation}</span>
-                    <span className="text-amber-300/90 font-medium shrink-0 ml-2">
-                      {isCustomVideo ? 'Video Admin' : 'Ref: Drone Aerial'}
-                    </span>
+                  {/* Ringkasan Berita */}
+                  <p className="text-[11px] sm:text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                    {currentArticle.summary}
+                  </p>
+
+                  {/* Baris Tombol Aksi & Indikator Titik */}
+                  <div className="pt-2.5 border-t border-white/10 flex items-center justify-between gap-3">
+                    {/* Dots Carousel Bar */}
+                    <div className="flex items-center gap-1.5">
+                      {highlightList.map((_, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setCurrentIndex(idx)}
+                          className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                            idx === currentIndex 
+                              ? 'w-6 bg-amber-400' 
+                              : 'w-2 bg-white/20 hover:bg-white/40'
+                          }`}
+                          title={`Lihat Berita ${idx + 1}`}
+                          aria-label={`Slide ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Tombol Baca Lengkap */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleArticleClick(currentArticle)}
+                        className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                        id="btn-baca-highlight-berita"
+                      >
+                        <span>Baca Berita</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActivePage('berita')}
+                        className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                        title="Lihat Seluruh Arsip Berita Bapperida"
+                      >
+                        <span className="hidden sm:inline">Semua</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                 </div>
+
               </div>
             </motion.div>
 

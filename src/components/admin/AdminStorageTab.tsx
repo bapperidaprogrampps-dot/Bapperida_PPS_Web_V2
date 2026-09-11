@@ -23,8 +23,14 @@ import {
   Layers,
   Wrench,
   CheckCircle,
-  XCircle
+  XCircle,
+  RotateCcw,
+  Settings2,
+  KeyRound,
+  ShieldCheck,
+  X
 } from 'lucide-react';
+import { StorageService } from '../../services/storage';
 import { UploadService, ServerStorageStatus, UploadResult } from '../../services/uploadService';
 import { CentralSyncService, SyncStatus } from '../../services/centralSyncService';
 import { ServerStorageConfig, StorageProvider } from '../../types';
@@ -118,6 +124,18 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
   const [isUploadingTest, setIsUploadingTest] = useState<boolean>(false);
   const [testResult, setTestResult] = useState<UploadResult | null>(null);
 
+  // Reset & DB config modal state
+  const [isResettingDb, setIsResettingDb] = useState<boolean>(false);
+  const [showConfigModal, setShowConfigModal] = useState<boolean>(false);
+  const [dbForm, setDbForm] = useState({
+    host: '',
+    port: '3306',
+    user: '',
+    password: '',
+    database: ''
+  });
+  const [isSavingDbForm, setIsSavingDbForm] = useState<boolean>(false);
+
   useEffect(() => {
     checkAllStatuses();
     const unsub = CentralSyncService.subscribe((s) => setSyncStatus(s));
@@ -167,6 +185,63 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
   const handleDownloadSqlSchema = () => {
     window.open('/schema.sql', '_blank');
     showToast('Mengunduh berkas skrip schema.sql untuk phpMyAdmin...');
+  };
+
+  const handleResetDatabaseAndStorage = async () => {
+    if (!window.confirm('PERINGATAN: Apakah Anda yakin ingin mereset dan membersihkan seluruh pengaturan database & penyimpanan Hostinger? Pengaturan akan dikosongkan agar bersih dan siap menerima konfigurasi baru.')) {
+      return;
+    }
+
+    setIsResettingDb(true);
+    try {
+      // 1. Reset di backend
+      const res = await CentralSyncService.resetMysqlConfig();
+      // 2. Reset local browser storage config
+      StorageService.resetDatabaseAndStorageSettings();
+      UploadService.resetStorageConfig();
+      setConfig(UploadService.getStorageConfig());
+
+      setDbForm({
+        host: '',
+        port: '3306',
+        user: '',
+        password: '',
+        database: ''
+      });
+
+      showToast(res.message || 'Semua pengaturan database & penyimpanan Hostinger berhasil direset bersih!');
+      await checkAllStatuses();
+    } catch (e: any) {
+      showToast(`Gagal mereset: ${e.message}`);
+    } finally {
+      setIsResettingDb(false);
+    }
+  };
+
+  const handleSaveDbForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dbForm.host.trim() || !dbForm.user.trim() || !dbForm.database.trim()) {
+      showToast('Mohon isi Host, User, dan Nama Database!');
+      return;
+    }
+
+    setIsSavingDbForm(true);
+    try {
+      const res = await CentralSyncService.updateMysqlConfig({
+        host: dbForm.host.trim(),
+        port: parseInt(dbForm.port, 10) || 3306,
+        user: dbForm.user.trim(),
+        password: dbForm.password,
+        database: dbForm.database.trim()
+      });
+      showToast(res.message);
+      setShowConfigModal(false);
+      await checkMysqlStatus();
+    } catch (err: any) {
+      showToast(`Gagal menyimpan konfigurasi: ${err.message}`);
+    } finally {
+      setIsSavingDbForm(false);
+    }
   };
 
   const handlePushAll = async () => {
@@ -466,6 +541,29 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
+              onClick={() => setShowConfigModal(true)}
+              className="px-3.5 py-2 bg-[#0f3d5c] hover:bg-[#0b2b40] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+              title="Atur parameter koneksi database MySQL Hostinger"
+              id="btn-open-mysql-config"
+            >
+              <Settings2 className="w-3.5 h-3.5 text-amber-400" />
+              <span>Input Parameter DB</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleResetDatabaseAndStorage}
+              disabled={isResettingDb}
+              className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+              title="Bersihkan dan reset seluruh pengaturan database & penyimpanan Hostinger"
+              id="btn-reset-db-settings"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${isResettingDb ? 'animate-spin' : ''}`} />
+              <span>{isResettingDb ? 'Mereset...' : 'Bersihkan Pengaturan'}</span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleMigrateMysql}
               disabled={isMigratingMysql}
               className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs disabled:opacity-50"
@@ -519,6 +617,31 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
               </span>
             </div>
           </div>
+        ) : (!mysqlDiag?.config?.host || !mysqlDiag?.config?.user || !mysqlDiag?.config?.database) ? (
+          <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-950 space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <Info className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold text-sky-950 flex items-center gap-2">
+                    <span>Pengaturan Basis Data Direset Bersih</span>
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-sky-100 text-sky-800 border border-sky-200">Menunggu Pengaturan Baru</span>
+                  </div>
+                  <p className="text-[11px] text-sky-800 mt-0.5 leading-relaxed">
+                    Semua pengaturan basis data MySQL Hostinger telah dibersihkan. Anda dapat memasukkan parameter database baru setelah perintah ini kapan saja melalui tombol <strong className="text-sky-950">"Input Parameter DB"</strong> di atas.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConfigModal(true)}
+                className="shrink-0 px-3.5 py-2 bg-[#0f3d5c] hover:bg-[#0b2b40] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
+              >
+                <Settings2 className="w-3.5 h-3.5 text-amber-400" />
+                <span>Input Parameter Sekarang</span>
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-2">
             <div className="flex items-start gap-2.5">
@@ -528,8 +651,13 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
                   Status: MySQL Siaga (Sistem Berjalan Stabil via Mirror File)
                 </div>
                 <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
-                  Portal saat ini tetap aktif dan lancar menggunakan penyimpanan server lokal Hostinger. Untuk mengaktifkan basis data MySQL Hostinger secara permanen, masukkan kredensial database di file <code className="font-mono bg-amber-100 px-1 py-0.5 rounded font-bold">.env</code> server Anda atau impor <code className="font-mono bg-amber-100 px-1 py-0.5 rounded font-bold">schema.sql</code> ke phpMyAdmin.
+                  Portal saat ini tetap aktif dan lancar menggunakan penyimpanan server lokal Hostinger. Untuk mengaktifkan basis data MySQL Hostinger secara permanen, masukkan kredensial database di file <code className="font-mono bg-amber-100 px-1 py-0.5 rounded font-bold">.env</code> server Anda atau gunakan tombol <strong>"Input Parameter DB"</strong> di atas.
                 </p>
+                {mysqlDiag?.error && (
+                  <p className="text-[11px] font-mono text-red-700 bg-red-50 p-2 rounded border border-red-200 mt-1">
+                    Detail: {mysqlDiag.error}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -1077,6 +1205,129 @@ export function AdminStorageTab({ showToast }: AdminStorageTabProps) {
         </div>
 
       </div>
+
+      {/* Modal / Dialog Input Konfigurasi Database MySQL */}
+      {showConfigModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-[#0f3d5c] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Database className="w-5 h-5 text-amber-400" />
+                <h3 className="text-base font-bold">Input Parameter Database MySQL</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConfigModal(false)}
+                className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body / Form */}
+            <form onSubmit={handleSaveDbForm} className="p-6 space-y-4">
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  Parameter akan disimpan langsung ke server aplikasi. Seluruh pengaturan sebelumnya telah bersih dan siap diisi parameter koneksi MySQL Hostinger baru Anda.
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Host Database
+                </label>
+                <input
+                  type="text"
+                  value={dbForm.host}
+                  onChange={(e) => setDbForm({ ...dbForm, host: e.target.value })}
+                  placeholder="Contoh: localhost atau 127.0.0.1"
+                  required
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0f3d5c]"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">
+                  Gunakan <code className="font-mono text-slate-600">localhost</code> jika database berada di server yang sama.
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Port Database
+                  </label>
+                  <input
+                    type="text"
+                    value={dbForm.port}
+                    onChange={(e) => setDbForm({ ...dbForm, port: e.target.value })}
+                    placeholder="3306"
+                    className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0f3d5c]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Nama Database
+                  </label>
+                  <input
+                    type="text"
+                    value={dbForm.database}
+                    onChange={(e) => setDbForm({ ...dbForm, database: e.target.value })}
+                    placeholder="Contoh: u898537914_bapperida"
+                    required
+                    className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0f3d5c]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Username Database
+                </label>
+                <input
+                  type="text"
+                  value={dbForm.user}
+                  onChange={(e) => setDbForm({ ...dbForm, user: e.target.value })}
+                  placeholder="Contoh: u898537914_bapperidaPPS"
+                  required
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0f3d5c]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Password Database</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Sandi user MySQL</span>
+                </label>
+                <input
+                  type="password"
+                  value={dbForm.password}
+                  onChange={(e) => setDbForm({ ...dbForm, password: e.target.value })}
+                  placeholder="Masukkan kata sandi database Hostinger"
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0f3d5c]"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(false)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingDbForm}
+                  className="px-5 py-2.5 bg-[#0f3d5c] hover:bg-[#0c2f47] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  <Save className="w-4 h-4 text-amber-400" />
+                  <span>{isSavingDbForm ? 'Menyimpan & Menghubungkan...' : 'Simpan & Uji Koneksi'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

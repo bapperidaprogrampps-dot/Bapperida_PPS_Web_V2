@@ -22,17 +22,125 @@ export interface MysqlConfig {
 
 let pool: mysql.Pool | null = null;
 let isInitialized = false;
+let dynamicMysqlConfig: MysqlConfig | null = null;
+
+const CONFIG_FILE_PATH = path.join(process.cwd(), 'uploads', 'data', 'mysql_config.json');
 
 /**
- * Mengambil konfigurasi MySQL dari environment variable
+ * Membaca konfigurasi MySQL yang tersimpan di disk (jika ada)
+ */
+function loadPersistedMysqlConfig(): MysqlConfig | null {
+  try {
+    if (fs.existsSync(CONFIG_FILE_PATH)) {
+      const raw = fs.readFileSync(CONFIG_FILE_PATH, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        return {
+          host: parsed.host || '',
+          port: parseInt(parsed.port || '3306', 10),
+          user: parsed.user || '',
+          password: parsed.password || '',
+          database: parsed.database || '',
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('Gagal membaca file mysql_config.json:', e);
+  }
+  return null;
+}
+
+/**
+ * Mengambil konfigurasi MySQL saat ini.
+ * Default bersih/kosong jika belum diatur.
  */
 export function getMysqlConfig(): MysqlConfig {
+  if (dynamicMysqlConfig) {
+    return dynamicMysqlConfig;
+  }
+  const persisted = loadPersistedMysqlConfig();
+  if (persisted) {
+    dynamicMysqlConfig = persisted;
+    return persisted;
+  }
   return {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '3306', 10),
-    user: process.env.DB_USER || 'root',
+    host: process.env.DB_HOST || '',
+    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
+    user: process.env.DB_USER || '',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'bapperida_db',
+    database: process.env.DB_NAME || '',
+  };
+}
+
+/**
+ * Mereset seluruh konfigurasi basis data MySQL ke status bersih/kosong
+ */
+export function resetMysqlConfig(): void {
+  dynamicMysqlConfig = {
+    host: '',
+    port: 3306,
+    user: '',
+    password: '',
+    database: ''
+  };
+  if (pool) {
+    try {
+      pool.end();
+    } catch {
+      // ignore
+    }
+  }
+  pool = null;
+  isInitialized = false;
+  if (fs.existsSync(CONFIG_FILE_PATH)) {
+    try {
+      fs.unlinkSync(CONFIG_FILE_PATH);
+    } catch (e) {
+      console.warn('Gagal menghapus file mysql_config.json:', e);
+    }
+  }
+}
+
+/**
+ * Memperbarui konfigurasi database MySQL
+ */
+export async function updateMysqlConfig(newConfig: Partial<MysqlConfig>): Promise<{ success: boolean; message: string }> {
+  const current = getMysqlConfig();
+  const updated: MysqlConfig = {
+    host: newConfig.host !== undefined ? newConfig.host.trim() : current.host,
+    port: newConfig.port !== undefined ? Number(newConfig.port) || 3306 : current.port,
+    user: newConfig.user !== undefined ? newConfig.user.trim() : current.user,
+    password: newConfig.password !== undefined ? newConfig.password : current.password,
+    database: newConfig.database !== undefined ? newConfig.database.trim() : current.database,
+  };
+
+  dynamicMysqlConfig = updated;
+
+  // Tutup pool lama jika ada
+  if (pool) {
+    try {
+      await pool.end();
+    } catch {
+      // ignore
+    }
+    pool = null;
+    isInitialized = false;
+  }
+
+  // Simpan ke disk agar bertahan saat server restart
+  try {
+    const dataDir = path.dirname(CONFIG_FILE_PATH);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(updated, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Gagal menyimpan file mysql_config.json:', err);
+  }
+
+  return {
+    success: true,
+    message: 'Konfigurasi basis data MySQL berhasil disimpan!'
   };
 }
 
@@ -41,6 +149,11 @@ export function getMysqlConfig(): MysqlConfig {
  */
 export async function getMysqlPool(): Promise<mysql.Pool | null> {
   const config = getMysqlConfig();
+
+  // Jika konfigurasi masih bersih/kosong (belum diatur), jangan konek
+  if (!config.host || !config.user || !config.database) {
+    return null;
+  }
 
   // Jika belum ada pool, inisialisasi pool baru
   if (!pool) {
@@ -222,13 +335,21 @@ export async function testMysqlConnection(): Promise<{
     database: cfg.database
   };
 
+  if (!cfg.host || !cfg.user || !cfg.database) {
+    return {
+      connected: false,
+      config: safeConfig,
+      error: 'Pengaturan basis data MySQL Hostinger telah direset dan masih bersih. Menunggu konfigurasi baru dimasukkan.'
+    };
+  }
+
   try {
     const p = await getMysqlPool();
     if (!p) {
       return {
         connected: false,
         config: safeConfig,
-        error: 'Tidak dapat membuat koneksi ke MySQL. Pastikan service MySQL/MariaDB berjalan di Hostinger dan parameter DB_* di .env telah diisi.'
+        error: 'Tidak dapat membuat koneksi ke MySQL. Pastikan kredensial Hostinger benar dan database dapat diakses.'
       };
     }
 

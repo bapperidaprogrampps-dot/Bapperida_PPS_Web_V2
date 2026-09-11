@@ -38,8 +38,29 @@ const KEYS = {
   ADMIN_DISABLE_DEFAULT_CREDS: 'bapperida_pps_admin_disable_default_creds_v1',
 };
 
-// Satu kali pembersihan otomatis dummy data lawas di browser pengunjung
+// 1. Selalu keluar dari mode admin saat pertama masuk / refresh web
 if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem(KEYS.ADMIN_AUTH);
+    localStorage.removeItem(KEYS.ADMIN_SESSION_USER);
+  } catch (e) {
+    // ignore
+  }
+
+  // 2. Pembersihan & reset semua pengaturan database / penyimpanan Hostinger
+  try {
+    const DB_SETTINGS_RESET_FLAG = 'bapperida_pps_db_config_reset_v2';
+    if (!localStorage.getItem(DB_SETTINGS_RESET_FLAG)) {
+      localStorage.removeItem('bapperida_pps_server_storage_config_v1');
+      localStorage.removeItem('bapperida_last_server_sync');
+      localStorage.removeItem('bapperida_pps_db_custom_config');
+      localStorage.setItem(DB_SETTINGS_RESET_FLAG, 'true');
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 3. Pembersihan otomatis dummy data lawas di browser pengunjung
   try {
     const DUMMY_CLEANED_FLAG = 'bapperida_pps_dummy_data_purged_v2';
     if (!localStorage.getItem(DUMMY_CLEANED_FLAG)) {
@@ -595,6 +616,16 @@ export const StorageService = {
 
   logout(): void {
     this.setAdminLoggedIn(false);
+  },
+
+  resetDatabaseAndStorageSettings(): void {
+    try {
+      localStorage.removeItem('bapperida_pps_server_storage_config_v1');
+      localStorage.removeItem('bapperida_last_server_sync');
+      localStorage.removeItem('bapperida_pps_db_custom_config');
+    } catch (e) {
+      console.warn('Gagal mereset pengaturan database lokal:', e);
+    }
   },
 
   // Toggle Default Credentials on Admin Login Screen

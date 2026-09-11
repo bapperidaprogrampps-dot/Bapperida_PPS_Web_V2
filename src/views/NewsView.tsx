@@ -57,13 +57,19 @@ export function NewsView({ articles, onSelectArticle }: NewsViewProps) {
             onClick={() => onSelectArticle(featuredArticle)}
             className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer grid grid-cols-1 lg:grid-cols-12 group"
           >
-            <div className="lg:col-span-7 aspect-video lg:aspect-auto overflow-hidden bg-slate-100">
-              <img 
-                src={featuredArticle.imageUrl} 
-                alt={featuredArticle.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
-                referrerPolicy="no-referrer"
-              />
+            <div className="lg:col-span-7 aspect-video lg:aspect-auto overflow-hidden bg-slate-100 flex items-center justify-center">
+              {featuredArticle.imageUrl ? (
+                <img 
+                  src={featuredArticle.imageUrl} 
+                  alt={featuredArticle.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 p-8">
+                  <Newspaper className="w-16 h-16 opacity-30" />
+                </div>
+              )}
             </div>
             <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
@@ -140,13 +146,19 @@ export function NewsView({ articles, onSelectArticle }: NewsViewProps) {
               onClick={() => onSelectArticle(art)}
               className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer flex flex-col group h-full"
             >
-              <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">
-                <img
-                  src={art.imageUrl}
-                  alt={art.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  referrerPolicy="no-referrer"
-                />
+              <div className="aspect-video w-full overflow-hidden bg-slate-100 relative flex items-center justify-center">
+                {art.imageUrl ? (
+                  <img
+                    src={art.imageUrl}
+                    alt={art.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                    <Newspaper className="w-10 h-10 opacity-30" />
+                  </div>
+                )}
                 <span className="absolute top-3 left-3 px-2 py-0.5 rounded text-[10px] font-bold bg-[#0f3d5c]/90 text-white backdrop-blur-xs">
                   {art.category}
                 </span>

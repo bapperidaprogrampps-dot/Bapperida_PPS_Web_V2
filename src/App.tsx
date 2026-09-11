@@ -35,7 +35,11 @@ import { CheckCircle2, X } from 'lucide-react';
 
 export default function App() {
   const [activePage, setActivePage] = useState<ActivePage>('beranda');
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => StorageService.isAdminLoggedIn());
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
+    // Selalu keluar dari mode admin saat pertama kali masuk web
+    StorageService.logout();
+    return false;
+  });
 
   // Data state
   const [documents, setDocuments] = useState<PlanningDocument[]>([]);

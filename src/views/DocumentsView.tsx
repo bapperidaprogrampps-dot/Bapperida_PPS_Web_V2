@@ -157,7 +157,7 @@ export function DocumentsView({ documents, onSelectDocument, onDownloadDocument 
                       {/* Book Binding Line */}
                       <div className="absolute left-3 top-0 bottom-0 w-px bg-white/20 z-10 pointer-events-none"></div>
                       
-                      {doc.coverImage ? (
+                      {doc.coverImage && doc.coverImage.trim() !== '' ? (
                         <img src={doc.coverImage} alt={doc.title} className="w-full h-full object-cover relative z-0" referrerPolicy="no-referrer" />
                       ) : (
                         <div className="w-full h-full flex flex-col justify-between p-3.5 pt-8 bg-gradient-to-br from-[#185377] to-[#0f3d5c] text-white relative z-0 text-center">

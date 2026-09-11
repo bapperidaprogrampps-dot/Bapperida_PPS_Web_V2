@@ -70,14 +70,16 @@ export function ArticleDetailModal({ article, onClose }: ArticleDetailModalProps
           </div>
 
           {/* Featured Image */}
-          <div className="rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100">
-            <img 
-              src={article.imageUrl} 
-              alt={article.title}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-          </div>
+          {article.imageUrl ? (
+            <div className="rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100">
+              <img 
+                src={article.imageUrl} 
+                alt={article.title}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+          ) : null}
 
           {/* Excerpt Lead */}
           <p className="text-sm font-semibold text-slate-700 leading-relaxed italic border-l-4 border-amber-500 pl-4 py-1 bg-amber-50/40 rounded-r">

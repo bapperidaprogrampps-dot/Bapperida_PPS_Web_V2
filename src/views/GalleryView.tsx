@@ -60,13 +60,19 @@ export function GalleryView({ gallery }: GalleryViewProps) {
               onClick={() => setActivePhoto(item)}
               className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-[#0f3d5c] transition cursor-pointer group flex flex-col"
             >
-              <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">
-                <img
-                  src={item.imageUrl}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  referrerPolicy="no-referrer"
-                />
+              <div className="aspect-video w-full overflow-hidden bg-slate-100 relative flex items-center justify-center">
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                    <ImageIcon className="w-10 h-10 opacity-30" />
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                   <span className="p-2 rounded-full bg-white/90 text-slate-900 border border-slate-200">
                     <Eye className="w-5 h-5" />
@@ -127,12 +133,14 @@ export function GalleryView({ gallery }: GalleryViewProps) {
             </div>
 
             <div className="overflow-y-auto">
-              <img
-                src={activePhoto.imageUrl}
-                alt={activePhoto.title}
-                className="w-full max-h-[500px] object-cover"
-                referrerPolicy="no-referrer"
-              />
+              {activePhoto.imageUrl ? (
+                <img
+                  src={activePhoto.imageUrl}
+                  alt={activePhoto.title}
+                  className="w-full max-h-[500px] object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : null}
               <div className="p-6 space-y-2">
                 <h3 className="font-bold text-lg text-slate-900 leading-snug">
                   {activePhoto.title}

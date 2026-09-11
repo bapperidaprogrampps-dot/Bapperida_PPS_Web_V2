@@ -12,7 +12,6 @@ import {
   TrendingUp, 
   Sliders, 
   Film,
-  Server,
   LogOut, 
   CheckCircle2, 
   ChevronRight, 
@@ -48,7 +47,7 @@ import { AdminEmployeesTab } from '../components/admin/AdminEmployeesTab';
 import { AdminIndicatorsTab } from '../components/admin/AdminIndicatorsTab';
 import { AdminSettingsTab } from '../components/admin/AdminSettingsTab';
 import { AdminHeroVideoTab } from '../components/admin/AdminHeroVideoTab';
-import { AdminStorageTab } from '../components/admin/AdminStorageTab';
+import { AdminHeroHighlightTab } from '../components/admin/AdminHeroHighlightTab';
 import { AdminSecurityTab } from '../components/admin/AdminSecurityTab';
 
 export type AdminTabId = 
@@ -62,8 +61,8 @@ export type AdminTabId =
   | 'pegawai'
   | 'sambutan' 
   | 'indikator' 
+  | 'highlight-beranda'
   | 'video-beranda'
-  | 'penyimpanan-hostinger'
   | 'keamanan'
   | 'instansi';
 
@@ -167,16 +166,10 @@ export function AdminView({
       ]
     },
     {
-      group: 'Infrastruktur & Penyimpanan',
-      items: [
-        { id: 'penyimpanan-hostinger', label: 'Penyimpanan Hostinger', icon: Server, badge: 'Server' },
-      ]
-    },
-    {
       group: 'Konfigurasi Konten & Wilayah',
       items: [
         { id: 'pegawai', label: 'Profil Pegawai', icon: Users, badge: employees.length },
-        { id: 'video-beranda', label: 'Unggah Video Beranda', icon: Film, badge: 'Admin' },
+        { id: 'highlight-beranda', label: 'Highlight Berita Beranda', icon: Sparkles, badge: 'Hero' },
         { id: 'sambutan', label: 'Foto & Sambutan Pimpinan', icon: Award, badge: 'Edit Foto' },
         { id: 'indikator', label: 'Indikator Makro Pembangunan', icon: TrendingUp, badge: null },
         { id: 'instansi', label: 'Pengaturan Umum & Kontak', icon: Sliders, badge: null },
@@ -380,16 +373,12 @@ export function AdminView({
             />
           )}
 
-          {activeTab === 'video-beranda' && (
-            <AdminHeroVideoTab
+          {(activeTab === 'highlight-beranda' || activeTab === 'video-beranda') && (
+            <AdminHeroHighlightTab
+              news={news}
               onDataChanged={handleDataChangedWithReload}
               showToast={showToast}
-            />
-          )}
-
-          {activeTab === 'penyimpanan-hostinger' && (
-            <AdminStorageTab
-              showToast={showToast}
+              onNavigateTab={(tab) => setActiveTab(tab)}
             />
           )}
 
