@@ -553,7 +553,7 @@ export function AdminEmployeesTab({ employees, onDataChanged, showToast }: Admin
                 </div>
               </div>
 
-              {/* Row 4: Foto Pegawai (Upload & URL Input) */}
+              {/* Row 4: Foto Pegawai (Upload Langsung) */}
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                 <label className="block text-xs font-bold text-slate-800">
                   Foto Resmi Pegawai
@@ -573,21 +573,14 @@ export function AdminEmployeesTab({ employees, onDataChanged, showToast }: Admin
                   </div>
 
                   <div className="flex-1 w-full space-y-2">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={photoUrl}
-                        onChange={(e) => setPhotoUrl(e.target.value)}
-                        placeholder="https://... atau /uploads/images/foto.jpg"
-                        className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono"
-                      />
-                      <label className="px-3 py-2 bg-[#0f3d5c] hover:bg-[#154e74] text-white rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="px-3.5 py-2 bg-[#0f3d5c] hover:bg-[#154e74] text-white rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5 shadow-xs">
                         {isUploadingPhoto ? (
                           <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
                         ) : (
                           <UploadCloud className="w-3.5 h-3.5 text-amber-400" />
                         )}
-                        <span>Unggah Foto</span>
+                        <span>{photoUrl ? 'Ganti Foto Pegawai' : 'Pilih & Unggah Foto Pegawai'}</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -596,9 +589,22 @@ export function AdminEmployeesTab({ employees, onDataChanged, showToast }: Admin
                           className="hidden"
                         />
                       </label>
+
+                      {photoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setPhotoUrl('')}
+                          className="px-3 py-2 bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 hover:border-rose-300 rounded-xl text-xs font-semibold transition cursor-pointer"
+                        >
+                          Hapus Foto
+                        </button>
+                      )}
                     </div>
                     <p className="text-[10px] text-slate-500">
-                      Format JPG, PNG, atau WEBP. Berkas dapat diunggah langsung ke penyimpanan server.
+                      {photoUrl 
+                        ? 'Foto pegawai aktif dan siap ditampilkan pada struktur bagan profil pegawai.'
+                        : 'Format JPG, PNG, atau WEBP. Berkas foto akan langsung diunggah dari perangkat Anda.'
+                      }
                     </p>
                   </div>
                 </div>

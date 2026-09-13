@@ -475,42 +475,6 @@ export function AdminHeroVideoTab({ onDataChanged, showToast }: AdminHeroVideoTa
             </div>
           </div>
 
-          {/* Form Tautan / URL Video Langsung */}
-          <form onSubmit={handleSaveDirectUrl} className="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Link2 className="w-4 h-4 text-[#0f3d5c]" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Atau Gunakan Tautan URL Video Langsung
-                </h3>
-              </div>
-              <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-semibold border border-emerald-200">
-                Sinkron Semua Browser
-              </span>
-            </div>
-
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Jika video Anda berada di hosting Hostinger (misal: <code className="text-[#0f3d5c] font-bold">/uploads/videos/profil.mp4</code>) atau CDN/Cloud luar, tempelkan tautannya di sini agar langsung tampil di semua perangkat tanpa terpengaruh batas upload PHP.
-            </p>
-
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={directVideoUrl}
-                onChange={(e) => setDirectVideoUrl(e.target.value)}
-                placeholder="/uploads/videos/profil-papua-selatan.mp4 atau https://..."
-                className="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0f3d5c] focus:outline-none font-mono"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2.5 bg-[#0f3d5c] hover:bg-[#185377] text-white text-xs font-bold rounded-xl transition shrink-0 cursor-pointer flex items-center gap-1.5"
-              >
-                <Save className="w-3.5 h-3.5 text-amber-400" />
-                <span>Terapkan</span>
-              </button>
-            </div>
-          </form>
-
           {/* Form Takarir Teks Video */}
           <form onSubmit={handleSaveCaptions} className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">

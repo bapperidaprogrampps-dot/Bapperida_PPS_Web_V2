@@ -498,23 +498,33 @@ export function AdminDocumentsTab({ documents, onDataChanged, showToast }: Admin
                   </label>
                 </div>
                 
-                <div className="flex gap-2 items-center mt-2">
-                  <input
-                    type="text"
-                    placeholder="Atau masukkan URL gambar cover secara manual..."
-                    value={coverImage}
-                    onChange={(e) => setCoverImage(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-hidden focus:border-indigo-500"
-                  />
-                  {coverImage && (
-                    <img
-                      src={coverImage}
-                      alt="Cover Preview"
-                      className="w-10 h-10 rounded object-cover border border-slate-200 shrink-0"
-                      referrerPolicy="no-referrer"
-                    />
-                  )}
-                </div>
+                {coverImage ? (
+                  <div className="flex items-center justify-between p-2.5 bg-white border border-indigo-200 rounded-lg">
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={coverImage}
+                        alt="Cover Preview"
+                        className="w-10 h-12 rounded object-cover border border-slate-200 shrink-0"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div>
+                        <span className="text-xs font-bold text-indigo-950 block">Gambar Cover Aktif</span>
+                        <span className="text-[10px] text-emerald-600 font-semibold">Tersimpan & siap ditampilkan di e-Library</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCoverImage('')}
+                      className="text-xs text-rose-600 hover:text-rose-700 font-semibold px-2 py-1 rounded hover:bg-rose-50 transition cursor-pointer"
+                    >
+                      Hapus Cover
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-slate-500 italic">
+                    Belum ada gambar cover yang diunggah. Dokumen akan menggunakan kartu cover standar.
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

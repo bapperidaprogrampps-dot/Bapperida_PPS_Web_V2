@@ -12,7 +12,7 @@ import {
   CheckCircle2, 
   Clock, 
   ArrowRight,
-  Film
+  Sparkles
 } from 'lucide-react';
 import { 
   PlanningDocument, 
@@ -300,12 +300,12 @@ export function AdminDashboardTab({
 
           <div className="pt-2 space-y-2">
             <button
-              onClick={() => onNavigateTab('video-beranda')}
-              className="w-full py-2.5 bg-[#0f3d5c]/10 hover:bg-[#0f3d5c]/20 text-[#0f3d5c] rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+              onClick={() => onNavigateTab('highlight-beranda')}
+              className="w-full py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer border border-amber-300/40"
             >
-              <Film className="w-3.5 h-3.5 text-amber-600" />
-              <span>Kelola & Unggah Video Beranda</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <span>Highlight Berita Beranda</span>
+              <ArrowRight className="w-3.5 h-3.5 text-amber-700" />
             </button>
 
             <button

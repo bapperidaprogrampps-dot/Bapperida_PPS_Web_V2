@@ -29,7 +29,6 @@ interface AdminLeaderSpeechTabProps {
 export function AdminLeaderSpeechTab({ onDataChanged, showToast }: AdminLeaderSpeechTabProps) {
   const [settings, setSettings] = useState<AgencySettings>(defaultAgencySettings);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [photoInputMode, setPhotoInputMode] = useState<'upload' | 'url'>('upload');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -245,118 +244,60 @@ export function AdminLeaderSpeechTab({ onDataChanged, showToast }: AdminLeaderSp
 
               {/* Box Kontrol Upload Foto */}
               <div className="md:col-span-8 space-y-4">
-                
-                {/* Pilihan Metode: Upload File atau Link URL */}
-                <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
-                  <button
-                    type="button"
-                    onClick={() => setPhotoInputMode('upload')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
-                      photoInputMode === 'upload'
-                        ? 'bg-[#0f3d5c] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Unggah File Foto</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPhotoInputMode('url')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
-                      photoInputMode === 'url'
-                        ? 'bg-[#0f3d5c] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    <LinkIcon className="w-3.5 h-3.5" />
-                    <span>Tautan URL Gambar</span>
-                  </button>
-                </div>
-
-                {photoInputMode === 'upload' ? (
-                  /* Area Drag & Drop & Upload Tombol */
-                  <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    className={`p-6 border-2 border-dashed rounded-xl transition flex flex-col items-center justify-center text-center space-y-3 ${
-                      isDragging 
-                        ? 'border-[#0f3d5c] bg-[#0f3d5c]/5' 
-                        : 'border-slate-300 hover:border-slate-400 bg-slate-50/60'
-                    }`}
-                  >
-                    <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center">
-                      <Upload className="w-6 h-6" />
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">
-                        Pilih foto profil Kepala Badan dari komputer atau ponsel Anda
-                      </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Mendukung format JPG, JPEG, PNG, dan WebP (Rasio pas 3:4)
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-wrap justify-center pt-1">
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploadingPhoto}
-                        className="px-4 py-2 bg-[#0f3d5c] hover:bg-[#154e74] text-white rounded-xl text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-50"
-                      >
-                        {isUploadingPhoto ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Sedang Mengunggah...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Camera className="w-4 h-4 text-amber-300" />
-                            <span>Pilih & Unggah Foto Baru</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleResetPhotoOnly}
-                        className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Kembalikan Foto Standar</span>
-                      </button>
-                    </div>
+                {/* Area Drag & Drop & Upload Tombol */}
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`p-6 border-2 border-dashed rounded-xl transition flex flex-col items-center justify-center text-center space-y-3 ${
+                    isDragging 
+                      ? 'border-[#0f3d5c] bg-[#0f3d5c]/5' 
+                      : 'border-slate-300 hover:border-slate-400 bg-slate-50/60'
+                  }`}
+                >
+                  <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                    <Upload className="w-6 h-6" />
                   </div>
-                ) : (
-                  /* Area Input URL Langsung */
-                  <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Masukkan URL / Tautan Langsung Foto Pimpinan:
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        value={settings.leaderPhoto}
-                        onChange={(e) => handleChange('leaderPhoto', e.target.value)}
-                        placeholder="https://... atau /uploads/images/foto.jpg"
-                        className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-hidden focus:border-[#0f3d5c]"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleResetPhotoOnly}
-                        className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition"
-                      >
-                        Foto Standar
-                      </button>
-                    </div>
-                    <p className="text-[11px] text-slate-500">
-                      Foto otomatis diperbarui pada pratinjau di sebelah kiri.
+
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">
+                      Pilih foto profil Kepala Badan dari komputer atau ponsel Anda
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Mendukung format JPG, JPEG, PNG, dan WebP (Rasio pas 3:4)
                     </p>
                   </div>
-                )}
+
+                  <div className="flex items-center gap-2 flex-wrap justify-center pt-1">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingPhoto}
+                      className="px-4 py-2 bg-[#0f3d5c] hover:bg-[#154e74] text-white rounded-xl text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-50"
+                    >
+                      {isUploadingPhoto ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Sedang Mengunggah...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Camera className="w-4 h-4 text-amber-300" />
+                          <span>Pilih & Unggah Foto Baru</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleResetPhotoOnly}
+                      className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Kembalikan Foto Standar</span>
+                    </button>
+                  </div>
+                </div>
 
                 <div className="flex items-center gap-2 text-[11px] text-slate-500">
                   <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />

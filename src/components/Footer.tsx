@@ -227,11 +227,11 @@ export function Footer({ setActivePage, isAdmin, onLogout }: FooterProps) {
               <button 
                 onClick={() => handleNav('admin')} 
                 id="footer-admin-btn"
-                className="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 font-medium transition flex items-center gap-1.5 cursor-pointer group"
-                title="Masuk ke Panel Administrator"
+                className="p-2 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 font-medium transition flex items-center justify-center cursor-pointer group"
+                title="Login Administrator"
+                aria-label="Login Administrator"
               >
                 <Lock className="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-300 transition-colors" />
-                <span>Login Admin</span>
               </button>
             )}
           </div>
