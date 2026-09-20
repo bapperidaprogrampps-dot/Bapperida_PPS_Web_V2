@@ -18,11 +18,12 @@ import {
   Award,
   Newspaper
 } from 'lucide-react';
-import { ActivePage, NewsArticle, PlanningDocument, AgendaEvent } from '../types';
+import { ActivePage, NewsArticle, PlanningDocument, AgendaEvent, PortalLink } from '../types';
 import { PapuaSelatanLogo, BapperidaLogo } from '../components/Logos';
 import { StorageService } from '../services/storage';
 import { HeroBanner } from '../components/HeroBanner';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../components/ScrollAnimations';
+import { PortalLinksSection } from '../components/PortalLinksSection';
 
 interface HomeViewProps {
   setActivePage: (page: ActivePage) => void;
@@ -47,10 +48,12 @@ export function HomeView({
 
   // Dynamic CMS settings from StorageService
   const [settings, setSettings] = useState(() => StorageService.getAgencySettings());
+  const [portalLinks, setPortalLinks] = useState<PortalLink[]>(() => StorageService.getPortalLinks());
 
   useEffect(() => {
     const handleSync = () => {
       setSettings(StorageService.getAgencySettings());
+      setPortalLinks(StorageService.getPortalLinks());
     };
     window.addEventListener('bapperida:data-synced', handleSync);
     return () => window.removeEventListener('bapperida:data-synced', handleSync);
@@ -576,6 +579,9 @@ export function HomeView({
           </ScrollReveal>
         </div>
       </section>
+
+      {/* Tautan Portal Website Terkait (Tepat Di Bawah Berita) */}
+      <PortalLinksSection portalLinks={portalLinks} />
 
       {/* 6. Wilayah Kerja 4 Kabupaten Anim Ha */}
       <section className="bg-slate-100/80 backdrop-blur-xs py-12 border-y border-slate-200 relative z-10">

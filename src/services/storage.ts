@@ -8,7 +8,8 @@ import {
   AgencySettings,
   IndicatorStat,
   AdminCredentials,
-  EmployeeProfile
+  EmployeeProfile,
+  PortalLink
 } from '../types';
 import { 
   initialArticles, 
@@ -18,7 +19,8 @@ import {
   initialGallery,
   defaultAgencySettings,
   regionalIndicatorStats,
-  initialEmployees
+  initialEmployees,
+  initialPortalLinks
 } from '../data/mockData';
 import { CentralSyncService } from './centralSyncService';
 
@@ -35,6 +37,7 @@ const KEYS = {
   SETTINGS: 'bapperida_pps_settings_v1',
   INDICATORS: 'bapperida_pps_indicators_v1',
   EMPLOYEES: 'bapperida_pps_employees_v1',
+  PORTAL_LINKS: 'bapperida_pps_portal_links_v1',
   ADMIN_DISABLE_DEFAULT_CREDS: 'bapperida_pps_admin_disable_default_creds_v1',
 };
 
@@ -689,6 +692,52 @@ export const StorageService = {
   deleteEmployee(id: string): void {
     const list = this.getEmployees().filter(e => e.id !== id);
     this.saveEmployees(list);
+  },
+
+  // Portal Website Links (Tautan Portal Eksternal / Mitra Terkait)
+  getPortalLinks(): PortalLink[] {
+    try {
+      const data = localStorage.getItem(KEYS.PORTAL_LINKS);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return initialPortalLinks;
+  },
+
+  savePortalLinks(links: PortalLink[]): void {
+    try {
+      localStorage.setItem(KEYS.PORTAL_LINKS, JSON.stringify(links));
+      CentralSyncService.syncKeyToServer('portal_links', links).catch(() => {});
+    } catch {
+      // ignore
+    }
+  },
+
+  addPortalLink(item: Omit<PortalLink, 'id'>): PortalLink {
+    const list = this.getPortalLinks();
+    const newLink: PortalLink = {
+      ...item,
+      id: `portal-${Date.now()}`,
+      isActive: item.isActive !== undefined ? item.isActive : true,
+      order: item.order || list.length + 1
+    };
+    list.push(newLink);
+    this.savePortalLinks(list);
+    return newLink;
+  },
+
+  updatePortalLink(updated: PortalLink): void {
+    const list = this.getPortalLinks().map(p => p.id === updated.id ? updated : p);
+    this.savePortalLinks(list);
+  },
+
+  deletePortalLink(id: string): void {
+    const list = this.getPortalLinks().filter(p => p.id !== id);
+    this.savePortalLinks(list);
   },
 
   // Reset all local storage to default initial data

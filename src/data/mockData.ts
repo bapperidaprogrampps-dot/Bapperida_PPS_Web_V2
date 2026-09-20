@@ -1,4 +1,4 @@
-import { NewsArticle, PlanningDocument, Complaint, AgendaEvent, GalleryItem, IndicatorStat, RegencyStat, EmployeeProfile } from '../types';
+import { NewsArticle, PlanningDocument, Complaint, AgendaEvent, GalleryItem, IndicatorStat, RegencyStat, EmployeeProfile, PortalLink } from '../types';
 
 export const initialArticles: NewsArticle[] = [];
 
@@ -81,3 +81,72 @@ export const defaultAgencySettings: import('../types').AgencySettings = {
 };
 
 export const initialEmployees: EmployeeProfile[] = [];
+
+export const initialPortalLinks: PortalLink[] = [
+  {
+    id: 'portal-1',
+    title: 'Portal Satu Data Papua Selatan',
+    url: 'https://data.papuaselatan.go.id',
+    description: 'Integrasi data spasial, statistik sektoral, dan indikator pembangunan terpadu Provinsi Papua Selatan.',
+    coverImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+    category: 'Satu Data',
+    badge: 'Satu Data PPS',
+    order: 1,
+    isActive: true
+  },
+  {
+    id: 'portal-2',
+    title: 'SIPD RI Kemendagri',
+    url: 'https://sipd-ri.kemendagri.go.id',
+    description: 'Sistem Informasi Pemerintahan Daerah untuk perencanaan pembangunan daerah dan tata kelola keuangan.',
+    coverImage: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80',
+    category: 'Pemerintahan',
+    badge: 'Kemendagri',
+    order: 2,
+    isActive: true
+  },
+  {
+    id: 'portal-3',
+    title: 'SP4N LAPOR!',
+    url: 'https://www.lapor.go.id',
+    description: 'Sistem Pengelolaan Pengaduan Pelayanan Publik Nasional untuk menampung aspirasi masyarakat luas.',
+    coverImage: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80',
+    category: 'Pengaduan Publik',
+    badge: 'KemenPANRB',
+    order: 3,
+    isActive: true
+  },
+  {
+    id: 'portal-4',
+    title: 'Portal PPID Utama Papua Selatan',
+    url: 'https://ppid.papuaselatan.go.id',
+    description: 'Layanan permohonan informasi publik dan transparansi dokumen berkala resmi Pemprov Papua Selatan.',
+    coverImage: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80',
+    category: 'Keterbukaan Informasi',
+    badge: 'PPID Utama',
+    order: 4,
+    isActive: true
+  },
+  {
+    id: 'portal-5',
+    title: 'KRISNA Bappenas RI',
+    url: 'https://krisna.systems',
+    description: 'Kolaborasi Perencanaan dan Informasi Kinerja Anggaran pembangunan nasional dan penelaahan DAK.',
+    coverImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+    category: 'Perencanaan',
+    badge: 'Bappenas',
+    order: 5,
+    isActive: true
+  },
+  {
+    id: 'portal-6',
+    title: 'BRIN - Riset & Inovasi Nasional',
+    url: 'https://brin.go.id',
+    description: 'Pusat integrasi ekosistem riset, sains terapan, dan hilirisasi potensi lokal komoditas unggulan.',
+    coverImage: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=800&q=80',
+    category: 'Riset & Sains',
+    badge: 'BRIN & BRIDA',
+    order: 6,
+    isActive: true
+  }
+];

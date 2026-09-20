@@ -21,7 +21,8 @@ import {
   KeyRound,
   ShieldCheck,
   X,
-  Users
+  Users,
+  Globe
 } from 'lucide-react';
 import { 
   PlanningDocument, 
@@ -30,7 +31,8 @@ import {
   AgendaEvent, 
   GalleryItem, 
   InformationRequest,
-  EmployeeProfile
+  EmployeeProfile,
+  PortalLink
 } from '../types';
 import { StorageService } from '../services/storage';
 
@@ -49,6 +51,7 @@ import { AdminSettingsTab } from '../components/admin/AdminSettingsTab';
 import { AdminHeroVideoTab } from '../components/admin/AdminHeroVideoTab';
 import { AdminHeroHighlightTab } from '../components/admin/AdminHeroHighlightTab';
 import { AdminSecurityTab } from '../components/admin/AdminSecurityTab';
+import { AdminPortalLinksTab } from '../components/admin/AdminPortalLinksTab';
 
 export type AdminTabId = 
   | 'dashboard' 
@@ -59,6 +62,7 @@ export type AdminTabId =
   | 'pengaduan' 
   | 'ppid' 
   | 'pegawai'
+  | 'portal-links'
   | 'sambutan' 
   | 'indikator' 
   | 'highlight-beranda'
@@ -92,14 +96,17 @@ export function AdminView({
   const [infoRequests, setInfoRequests] = useState<InformationRequest[]>([]);
   // Local state for Employees (Profil Pegawai)
   const [employees, setEmployees] = useState<EmployeeProfile[]>([]);
+  // Local state for Portal Links
+  const [portalLinks, setPortalLinks] = useState<PortalLink[]>([]);
 
   // Current admin credentials
   const currentAdmin = StorageService.getCurrentAdminUser();
 
-  // Load PPID requests & Employees
+  // Load PPID requests & Employees & Portal Links
   useEffect(() => {
     setInfoRequests(StorageService.getInfoRequests());
     setEmployees(StorageService.getEmployees());
+    setPortalLinks(StorageService.getPortalLinks());
   }, [complaints, documents]);
 
   const showToast = (message: string) => {
@@ -112,6 +119,7 @@ export function AdminView({
   const handleDataChangedWithReload = () => {
     setInfoRequests(StorageService.getInfoRequests());
     setEmployees(StorageService.getEmployees());
+    setPortalLinks(StorageService.getPortalLinks());
     onDataChanged();
   };
 
@@ -142,6 +150,7 @@ export function AdminView({
       items: [
         { id: 'dokumen', label: 'Dokumen Perencanaan', icon: FileText, badge: documents.length },
         { id: 'berita', label: 'Berita & Artikel', icon: Newspaper, badge: news.length },
+        { id: 'portal-links', label: 'Tautan Portal Website', icon: Globe, badge: portalLinks.length },
         { id: 'agenda', label: 'Agenda & Musrenbang', icon: Calendar, badge: agendas.length },
         { id: 'galeri', label: 'Galeri & Dokumentasi', icon: ImageIcon, badge: gallery.length },
       ]
@@ -336,6 +345,14 @@ export function AdminView({
           {activeTab === 'berita' && (
             <AdminNewsTab
               news={news}
+              onDataChanged={handleDataChangedWithReload}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'portal-links' && (
+            <AdminPortalLinksTab
+              portalLinks={portalLinks}
               onDataChanged={handleDataChangedWithReload}
               showToast={showToast}
             />

@@ -25,10 +25,8 @@ import {
 
 const app = express();
 
-// Support numeric ports AND Passenger Unix domain socket paths / pipes (Hostinger / cPanel)
-const rawPort = process.env.PORT || 3000;
-const isNumericPort = !isNaN(Number(rawPort)) && String(rawPort).trim() !== '';
-const PORT: number | string = isNumericPort ? Number(rawPort) : rawPort;
+// Port 3000 is required for AI Studio environment
+const PORT = 3000;
 
 // Base uploads directory on server (suitable for Hostinger VPS / Cloud or Node container)
 const UPLOADS_BASE_DIR = path.join(process.cwd(), 'uploads');
@@ -247,7 +245,7 @@ app.get('/api/storage/info', (req, res) => {
 });
 
 // 3. Upload File API
-app.post('/api/upload', upload.single('file'), (req, res) => {
+app.post('/api/upload', upload.single('file') as any, (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -642,17 +640,9 @@ async function startServer() {
     });
   }
 
-  // Gracefully handle Passenger unix sockets vs standard numeric ports
-  if (typeof PORT === 'number') {
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server Bapperida berjalan pada port ${PORT} (Hostinger Ready)`);
-    });
-  } else {
-    // Unix domain socket or named pipe provided by Passenger / cPanel
-    app.listen(PORT, () => {
-      console.log(`Server Bapperida terhubung ke socket Passenger: ${PORT}`);
-    });
-  }
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server Bapperida berjalan pada port ${PORT}`);
+  });
 }
 
 // Global safety guards preventing server crashes from yielding 503 errors

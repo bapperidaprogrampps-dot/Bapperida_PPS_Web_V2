@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Calendar,
   Eye,
-  Tag
+  Tag,
+  MoveHorizontal
 } from 'lucide-react';
 import { ActivePage, NewsArticle, AgencySettings } from '../types';
 import { StorageService } from '../services/storage';
@@ -109,7 +110,9 @@ export function HeroBanner({ setActivePage, articles = [], onSelectArticle }: He
   const rotationSeconds = agencySettings.heroHighlightInterval !== undefined ? agencySettings.heroHighlightInterval : 6;
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [direction, setDirection] = useState<number>(1);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const isDraggingRef = useRef<boolean>(false);
 
   // Pastikan currentIndex selalu valid jika panjang list berubah
   useEffect(() => {
@@ -122,6 +125,7 @@ export function HeroBanner({ setActivePage, articles = [], onSelectArticle }: He
   useEffect(() => {
     if (isPaused || highlightList.length <= 1 || rotationSeconds <= 0) return;
     const interval = setInterval(() => {
+      setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % highlightList.length);
     }, rotationSeconds * 1000);
     return () => clearInterval(interval);
@@ -130,16 +134,24 @@ export function HeroBanner({ setActivePage, articles = [], onSelectArticle }: He
   // Navigasi prev & next
   const handlePrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
+    setDirection(-1);
     setCurrentIndex((prev) => (prev === 0 ? highlightList.length - 1 : prev - 1));
   };
 
   const handleNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
+    setDirection(1);
     setCurrentIndex((prev) => (prev + 1) % highlightList.length);
   };
 
-  // Navigasi ke detail berita
+  const handleDotClick = (idx: number) => {
+    setDirection(idx > currentIndex ? 1 : -1);
+    setCurrentIndex(idx);
+  };
+
+  // Navigasi ke detail berita (aman dari drag event)
   const handleArticleClick = (article: NewsArticle) => {
+    if (isDraggingRef.current) return;
     if (onSelectArticle) {
       onSelectArticle(article);
     } else {
@@ -340,185 +352,150 @@ export function HeroBanner({ setActivePage, articles = [], onSelectArticle }: He
             </motion.div>
 
             {/* SISI KANAN: Panel Showcase Highlight Berita (Menggantikan Video Sesuai Permintaan) */}
+            {/* Kolom Kanan: Showcase Highlight Berita (Tanpa Boundaries, Foto Dominan, Bersih & Geser Kesamping) */}
             <motion.div 
-              initial={{ opacity: 0, scale: 0.94, x: 20 }}
+              initial={{ opacity: 0, scale: 0.96, x: 20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               transition={{ duration: 0.85, delay: 0.28, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-5"
+              className="lg:col-span-5 flex flex-col justify-center"
             >
               <div 
                 id="hero-highlight-berita-showcase"
-                className="relative rounded-2xl overflow-hidden border-2 border-white/25 bg-slate-950/90 backdrop-blur-md group max-w-lg mx-auto lg:max-w-none shadow-2xl transition duration-300"
+                className="relative w-full max-w-lg mx-auto lg:max-w-none group select-none"
                 onMouseEnter={() => setIsPaused(true)}
                 onMouseLeave={() => setIsPaused(false)}
               >
-                {/* Header Showcase: Label Sorotan & Kontrol Navigasi Carousel */}
-                <div className="px-4 py-3 bg-slate-900/90 border-b border-white/15 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                    </span>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-white">
-                      <Newspaper className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{badgeText}</span>
-                    </div>
-                  </div>
-
-                  {/* Navigasi Slide & Indikator */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono text-slate-300 bg-white/10 px-2 py-0.5 rounded-md font-bold">
-                      <span className="text-amber-400">{currentIndex + 1}</span> / {highlightList.length}
-                    </span>
-
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={handlePrev}
-                        className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition cursor-pointer"
-                        title="Berita Sebelumnya"
-                        aria-label="Berita Sebelumnya"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleNext}
-                        className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition cursor-pointer"
-                        title="Berita Selanjutnya"
-                        aria-label="Berita Selanjutnya"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Body Showcase: Gambar Berita dengan Badge Kategori */}
-                <div 
-                  className="relative aspect-video sm:aspect-[16/10] w-full overflow-hidden bg-slate-900 cursor-pointer group"
-                  onClick={() => handleArticleClick(currentArticle)}
-                >
-                  <AnimatePresence mode="wait">
-                    <motion.img
-                      key={currentArticle.id || currentIndex}
-                      src={currentArticle.imageUrl || FALLBACK_POSTER}
-                      alt={currentArticle.title}
-                      initial={{ opacity: 0, scale: 1.05 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.5 }}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = FALLBACK_POSTER;
-                      }}
-                      referrerPolicy="no-referrer"
-                    />
-                  </AnimatePresence>
-
-                  {/* Gradient Overlay for Legibility */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
-
-                  {/* Badge Kategori Berita di Kiri Atas */}
-                  <div className="absolute top-3 left-3 z-10">
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-amber-400 text-slate-950 shadow-md flex items-center gap-1">
-                      <Tag className="w-3 h-3 text-slate-950" />
-                      <span>{currentArticle.category || 'Berita'}</span>
-                    </span>
-                  </div>
-
-                  {/* Tanggal & Penayangan di Kanan Atas */}
-                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-950/75 backdrop-blur-md text-slate-200 border border-white/15 flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-amber-400" />
-                      <span>{currentArticle.publishedAt || 'Terbaru'}</span>
-                    </span>
-                  </div>
-
-                  {/* Floating Action Hint */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-slate-950/40 backdrop-blur-xs transition duration-300 pointer-events-none">
-                    <div className="px-3.5 py-1.5 rounded-full bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition duration-300">
-                      <span>Buka Artikel</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Deskripsi & Ringkasan Konten Berita */}
-                <div className="p-4 sm:p-5 space-y-2.5 text-white bg-slate-950/95 border-t border-white/10">
-                  <div className="flex items-center justify-between text-[11px] text-amber-400 font-semibold">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <Building2 className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{currentArticle.author || 'Bapperida Provinsi Papua Selatan'}</span>
-                    </div>
-                    {currentArticle.views !== undefined && currentArticle.views > 0 && (
-                      <span className="flex items-center gap-1 text-[10px] text-slate-400 shrink-0 font-medium ml-2">
-                        <Eye className="w-3 h-3 text-slate-400" />
-                        <span>{currentArticle.views} dibaca</span>
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Judul Berita Utama */}
-                  <h3 
-                    onClick={() => handleArticleClick(currentArticle)}
-                    className="text-xs sm:text-sm md:text-base font-bold leading-snug text-slate-100 line-clamp-2 hover:text-amber-300 transition cursor-pointer"
-                    title={currentArticle.title}
+                <AnimatePresence initial={false} custom={direction} mode="wait">
+                  <motion.div
+                    key={currentArticle.id || currentIndex}
+                    custom={direction}
+                    variants={{
+                      enter: (dir: number) => ({
+                        x: dir > 0 ? 100 : -100,
+                        opacity: 0,
+                      }),
+                      center: {
+                        x: 0,
+                        opacity: 1,
+                        transition: {
+                          x: { type: 'spring', stiffness: 320, damping: 28 },
+                          opacity: { duration: 0.2 }
+                        },
+                      },
+                      exit: (dir: number) => ({
+                        x: dir > 0 ? -100 : 100,
+                        opacity: 0,
+                        transition: {
+                          x: { type: 'spring', stiffness: 320, damping: 28 },
+                          opacity: { duration: 0.16 }
+                        },
+                      }),
+                    }}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.2}
+                    onDragStart={() => {
+                      isDraggingRef.current = true;
+                    }}
+                    onDragEnd={(_e, { offset, velocity }) => {
+                      setTimeout(() => {
+                        isDraggingRef.current = false;
+                      }, 80);
+                      const swipeThreshold = 35;
+                      if (offset.x < -swipeThreshold || velocity.x < -180) {
+                        handleNext();
+                      } else if (offset.x > swipeThreshold || velocity.x > 180) {
+                        handlePrev();
+                      }
+                    }}
+                    className="cursor-grab active:cursor-grabbing touch-pan-y"
                   >
-                    {currentArticle.title}
-                  </h3>
+                    {/* 1. Foto Berita Sangat Dominan (Tanpa Boundary Box / Frameless) */}
+                    <div 
+                      onClick={() => handleArticleClick(currentArticle)}
+                      className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-2xl shadow-black/50 bg-slate-900 group/card cursor-pointer"
+                    >
+                      <img
+                        src={currentArticle.imageUrl || FALLBACK_POSTER}
+                        alt={currentArticle.title}
+                        draggable={false}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105 pointer-events-none"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = FALLBACK_POSTER;
+                        }}
+                        referrerPolicy="no-referrer"
+                      />
+                      {/* Vignette halus di bagian bawah foto */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
 
-                  {/* Ringkasan Berita */}
-                  <p className="text-[11px] sm:text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                    {currentArticle.summary}
-                  </p>
+                      {/* Indikator Titik Geser & Panah Minimalis di Pojok Bawah Foto */}
+                      <div 
+                        className="absolute bottom-3 right-3 flex items-center gap-2 bg-slate-950/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          {highlightList.map((_, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleDotClick(idx)}
+                              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                                idx === currentIndex 
+                                  ? 'w-5 bg-amber-400' 
+                                  : 'w-1.5 bg-white/40 hover:bg-white/70'
+                              }`}
+                              title={`Berita ${idx + 1}`}
+                              aria-label={`Slide ${idx + 1}`}
+                            />
+                          ))}
+                        </div>
 
-                  {/* Baris Tombol Aksi & Indikator Titik */}
-                  <div className="pt-2.5 border-t border-white/10 flex items-center justify-between gap-3">
-                    {/* Dots Carousel Bar */}
-                    <div className="flex items-center gap-1.5">
-                      {highlightList.map((_, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => setCurrentIndex(idx)}
-                          className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                            idx === currentIndex 
-                              ? 'w-6 bg-amber-400' 
-                              : 'w-2 bg-white/20 hover:bg-white/40'
-                          }`}
-                          title={`Lihat Berita ${idx + 1}`}
-                          aria-label={`Slide ${idx + 1}`}
-                        />
-                      ))}
+                        <div className="h-3 w-px bg-white/20 ml-1" />
+
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={handlePrev}
+                            className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/15 transition cursor-pointer"
+                            title="Sebelumnya"
+                            aria-label="Sebelumnya"
+                          >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleNext}
+                            className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/15 transition cursor-pointer"
+                            title="Selanjutnya"
+                            aria-label="Selanjutnya"
+                          >
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Tombol Baca Lengkap */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleArticleClick(currentArticle)}
-                        className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-                        id="btn-baca-highlight-berita"
+                    {/* 2. Judul dan Sedikit Keterangan (Hanya Teks Bersih) */}
+                    <div 
+                      onClick={() => handleArticleClick(currentArticle)}
+                      className="mt-3.5 space-y-1.5 px-0.5 cursor-pointer group/text"
+                    >
+                      <h3 
+                        className="text-base sm:text-lg md:text-xl font-bold text-white leading-snug line-clamp-2 group-hover/text:text-amber-300 transition"
+                        title={currentArticle.title}
                       >
-                        <span>Baca Berita</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setActivePage('berita')}
-                        className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition text-xs font-semibold flex items-center gap-1 cursor-pointer"
-                        title="Lihat Seluruh Arsip Berita Bapperida"
-                      >
-                        <span className="hidden sm:inline">Semua</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
+                        {currentArticle.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-300 line-clamp-2 leading-relaxed">
+                        {currentArticle.summary}
+                      </p>
                     </div>
-                  </div>
-                </div>
-
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </motion.div>
 

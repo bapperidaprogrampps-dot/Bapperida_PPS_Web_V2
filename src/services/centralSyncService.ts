@@ -17,7 +17,8 @@ import {
   regionalIndicatorStats, 
   initialAgendas, 
   initialGallery, 
-  initialComplaints 
+  initialComplaints,
+  initialPortalLinks
 } from '../data/mockData';
 
 export const SYNC_KEYS = {
@@ -30,6 +31,7 @@ export const SYNC_KEYS = {
   GALLERY: 'gallery',
   COMPLAINTS: 'complaints',
   INFO_REQUESTS: 'info_requests',
+  PORTAL_LINKS: 'portal_links',
 } as const;
 
 export const LOCAL_STORAGE_MAP: Record<string, string> = {
@@ -42,6 +44,7 @@ export const LOCAL_STORAGE_MAP: Record<string, string> = {
   gallery: 'bapperida_pps_gallery_v1',
   complaints: 'bapperida_pps_complaints_v1',
   info_requests: 'bapperida_pps_info_requests_v1',
+  portal_links: 'bapperida_pps_portal_links_v1',
 };
 
 const DEFAULTS_MAP: Record<string, any> = {
@@ -53,7 +56,8 @@ const DEFAULTS_MAP: Record<string, any> = {
   agendas: initialAgendas,
   gallery: initialGallery,
   complaints: initialComplaints,
-  info_requests: []
+  info_requests: [],
+  portal_links: initialPortalLinks
 };
 
 export interface SyncStatus {

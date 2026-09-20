@@ -26,6 +26,18 @@ export interface NewsArticle {
   tags: string[];
 }
 
+export interface PortalLink {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+  coverImage: string;
+  badge?: string;
+  category?: string;
+  order?: number;
+  isActive?: boolean;
+}
+
 export type DocumentCategory = 
   | 'RPJPD' 
   | 'RPJMD' 

@@ -9,9 +9,11 @@ import {
   Tag, 
   ChevronRight 
 } from 'lucide-react';
-import { NewsArticle } from '../types';
+import { NewsArticle, PortalLink } from '../types';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../components/ScrollAnimations';
 import { PageHeaderBanner } from '../components/PageHeaderBanner';
+import { PortalLinksSection } from '../components/PortalLinksSection';
+import { StorageService } from '../services/storage';
 
 interface NewsViewProps {
   articles: NewsArticle[];
@@ -21,6 +23,7 @@ interface NewsViewProps {
 export function NewsView({ articles, onSelectArticle }: NewsViewProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState('');
+  const [portalLinks] = useState<PortalLink[]>(() => StorageService.getPortalLinks());
 
   const categories = ['Semua', 'Musrenbang', 'Riset & Inovasi', 'Pembangunan', 'Pemerintahan', 'Pengumuman'];
 
@@ -194,6 +197,9 @@ export function NewsView({ articles, onSelectArticle }: NewsViewProps) {
         ))}
       </StaggerContainer>
       </div>
+
+      {/* Tautan Portal Website Terkait (Di Bawah Berita) */}
+      <PortalLinksSection portalLinks={portalLinks} className="pt-2" />
     </div>
   );
 }
