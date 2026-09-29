@@ -616,16 +616,27 @@ app.post('/api/vps/seed', (req, res) => {
 // VITE MIDDLEWARE (Dev) & STATIC FILES (Production)
 // -------------------------------------------------------------
 async function startServer() {
-  const hasDist = fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'));
-  const isDev = process.env.NODE_ENV === 'development' || (!hasDist && fs.existsSync(path.join(process.cwd(), 'vite.config.ts')));
+  const isProd = process.env.NODE_ENV === 'production';
 
-  if (isDev) {
+  if (!isProd) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'
     });
     app.use(vite.middlewares);
+    app.use('*', async (req, res, next) => {
+      const url = req.originalUrl;
+      try {
+        const indexPath = path.resolve(process.cwd(), 'index.html');
+        let template = fs.readFileSync(indexPath, 'utf-8');
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
   } else {
     let distPath = path.join(process.cwd(), 'dist');
     if (fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'))) {
