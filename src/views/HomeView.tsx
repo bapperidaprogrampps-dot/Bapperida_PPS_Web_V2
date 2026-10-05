@@ -214,9 +214,6 @@ export function HomeView({
                 className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
               >
                 <div className="relative z-10">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-blue-100/50">
-                    <FileText className="w-7 h-7" />
-                  </div>
                   <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
                     Dokumen Perencanaan Daerah
                   </h3>
@@ -242,9 +239,6 @@ export function HomeView({
                 className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
               >
                 <div className="relative z-10">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100/50 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-amber-100/50">
-                    <ShieldCheck className="w-7 h-7" />
-                  </div>
                   <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
                     Layanan Informasi Publik (PPID)
                   </h3>
@@ -270,9 +264,6 @@ export function HomeView({
                 className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
               >
                 <div className="relative z-10">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-emerald-100/50">
-                    <Building2 className="w-7 h-7" />
-                  </div>
                   <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
                     Pengaduan & Lacak Tiket
                   </h3>
@@ -298,9 +289,6 @@ export function HomeView({
                 className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
               >
                 <div className="relative z-10">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100/50 text-purple-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-purple-100/50">
-                    <Microscope className="w-7 h-7" />
-                  </div>
                   <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
                     Riset & Inovasi (BRIDA)
                   </h3>
@@ -326,9 +314,6 @@ export function HomeView({
                 className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
               >
                 <div className="relative z-10">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-50 to-teal-100/50 text-teal-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-teal-100/50">
-                    <BarChart3 className="w-7 h-7" />
-                  </div>
                   <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
                     Data & Indikator Makro
                   </h3>
@@ -354,9 +339,6 @@ export function HomeView({
                 className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#0f3d5c]/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group h-full flex flex-col justify-between relative overflow-hidden"
               >
                 <div className="relative z-10">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100/50 text-orange-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-orange-100/50">
-                    <Calendar className="w-7 h-7" />
-                  </div>
                   <h3 className="font-bold text-[17px] text-slate-800 group-hover:text-[#0f3d5c] transition-colors">
                     Agenda & Musrenbang
                   </h3>
