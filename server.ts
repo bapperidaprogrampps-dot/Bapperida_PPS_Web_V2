@@ -254,12 +254,8 @@ app.post('/api/upload', upload.single('file') as any, (req, res) => {
       });
     }
 
-    const rawCategory = (req.body?.category || req.query?.category || 'general') as string;
-    const category: UploadCategory = CATEGORIES.includes(rawCategory as UploadCategory)
-      ? (rawCategory as UploadCategory)
-      : 'general';
-
-    const relativeUrl = `/uploads/${category}/${req.file.filename}`;
+    const destinationDir = path.basename(req.file.destination);
+    const relativeUrl = `/uploads/${destinationDir}/${req.file.filename}`;
 
     return res.json({
       success: true,
@@ -267,7 +263,7 @@ app.post('/api/upload', upload.single('file') as any, (req, res) => {
       url: relativeUrl,
       filename: req.file.filename,
       originalName: req.file.originalname,
-      category,
+      category: destinationDir,
       size: req.file.size,
       sizeFormatted: formatBytes(req.file.size),
       mimetype: req.file.mimetype,

@@ -197,7 +197,7 @@ export interface AdminCredentials {
   singleAdminOnly?: boolean;
 }
 
-export type EmployeePositionCategory = 'Kepala Badan' | 'Sekretaris' | 'Kasubag' | 'Kasubid' | 'Staff';
+export type EmployeePositionCategory = 'Kepala Badan' | 'Sekretaris' | 'Kabid' | 'Kasubag' | 'Kasubid' | 'Staff';
 
 export interface EmployeeProfile {
   id: string;

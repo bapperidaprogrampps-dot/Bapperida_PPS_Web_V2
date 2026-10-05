@@ -41,6 +41,7 @@ export function ProfileView() {
   const POSITION_CATEGORIES: EmployeePositionCategory[] = [
     'Kepala Badan',
     'Sekretaris',
+    'Kabid',
     'Kasubag',
     'Kasubid',
     'Staff'
@@ -62,6 +63,12 @@ export function ProfileView() {
       category: 'Sekretaris',
       title: 'Sekretaris Badan',
       gridCols: 'grid-cols-1 max-w-sm mx-auto',
+      isLeader: false
+    },
+    {
+      category: 'Kabid',
+      title: 'Kepala Bidang (Kabid)',
+      gridCols: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto',
       isLeader: false
     },
     {

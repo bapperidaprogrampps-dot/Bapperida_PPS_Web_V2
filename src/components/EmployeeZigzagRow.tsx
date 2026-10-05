@@ -69,6 +69,8 @@ export const EmployeeZigzagRow: React.FC<EmployeeZigzagRowProps> = ({
               ? 'bg-amber-100 text-amber-900 border border-amber-300'
               : employee.positionCategory === 'Sekretaris'
               ? 'bg-blue-100 text-blue-900 border border-blue-300'
+              : employee.positionCategory === 'Kabid'
+              ? 'bg-indigo-100 text-indigo-900 border border-indigo-300'
               : employee.positionCategory === 'Kasubag'
               ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
               : employee.positionCategory === 'Kasubid'

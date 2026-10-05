@@ -167,7 +167,6 @@ export function HomeView({
                         className="px-4 py-2 text-xs font-semibold text-[#0f3d5c] hover:bg-slate-50 border border-slate-200 rounded-lg transition flex items-center gap-1.5 cursor-pointer"
                         id="sambutan-profil-btn"
                       >
-                        <Award className="w-3.5 h-3.5 text-amber-500" />
                         <span>Profil Lengkap</span>
                       </button>
                       <button

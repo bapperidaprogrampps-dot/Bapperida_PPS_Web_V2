@@ -193,8 +193,8 @@ export const UploadService = {
 
     // Buat FormData
     const formData = new FormData();
-    formData.append('file', file);
     formData.append('category', category);
+    formData.append('file', file);
 
     // Coba kirimkan ke endpoint server
     let lastError: any = null;

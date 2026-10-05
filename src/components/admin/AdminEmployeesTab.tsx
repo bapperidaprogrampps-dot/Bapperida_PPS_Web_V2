@@ -31,6 +31,7 @@ interface AdminEmployeesTabProps {
 const POSITION_CATEGORIES: EmployeePositionCategory[] = [
   'Kepala Badan',
   'Sekretaris',
+  'Kabid',
   'Kasubag',
   'Kasubid',
   'Staff'
@@ -188,6 +189,8 @@ export function AdminEmployeesTab({ employees, onDataChanged, showToast }: Admin
         return 'bg-amber-100 text-amber-900 border-amber-300';
       case 'Sekretaris':
         return 'bg-blue-100 text-blue-900 border-blue-300';
+      case 'Kabid':
+        return 'bg-indigo-100 text-indigo-900 border-indigo-300';
       case 'Kasubag':
         return 'bg-emerald-100 text-emerald-900 border-emerald-300';
       case 'Kasubid':
@@ -503,6 +506,7 @@ export function AdminEmployeesTab({ employees, onDataChanged, showToast }: Admin
                   >
                     <option value="Kepala Badan">Kepala Badan</option>
                     <option value="Sekretaris">Sekretaris</option>
+                    <option value="Kabid">Kabid (Kepala Bidang)</option>
                     <option value="Kasubag">Kasubag (Kepala Sub Bagian)</option>
                     <option value="Kasubid">Kasubid (Kepala Sub Bidang)</option>
                     <option value="Staff">Staff (Pegawai Pelaksana)</option>
